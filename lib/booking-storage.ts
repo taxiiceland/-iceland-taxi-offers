@@ -17,6 +17,8 @@ const bookingLockKey = "icelandtaxioffers:booking-lock:v1";
 const localDataFile =
   process.env.BOOKING_STORAGE_FILE ||
   path.join(process.cwd(), ".data", "bookings.json");
+export const redisNotConfiguredMessage =
+  "Booking storage is not configured. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel Environment Variables.";
 
 let localQueue = Promise.resolve();
 
@@ -24,6 +26,22 @@ function hasUpstashConfig() {
   return Boolean(
     process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
   );
+}
+
+function canUseLocalStorage() {
+  return process.env.NODE_ENV !== "production" && process.env.VERCEL !== "1";
+}
+
+function ensureStorageConfigured() {
+  if (hasUpstashConfig()) {
+    return;
+  }
+
+  if (canUseLocalStorage()) {
+    return;
+  }
+
+  throw new Error("REDIS_NOT_CONFIGURED");
 }
 
 async function redisCommand<T>(command: Array<string | number>) {
@@ -118,6 +136,8 @@ async function acquireUpstashLock() {
 }
 
 export async function withBookingLock<T>(callback: () => Promise<T>) {
+  ensureStorageConfigured();
+
   if (!hasUpstashConfig()) {
     return withLocalLock(callback);
   }
@@ -136,6 +156,8 @@ export async function withBookingLock<T>(callback: () => Promise<T>) {
 }
 
 export async function getStoredBookings() {
+  ensureStorageConfigured();
+
   if (!hasUpstashConfig()) {
     return readLocalBookings();
   }
@@ -146,6 +168,8 @@ export async function getStoredBookings() {
 }
 
 export async function saveStoredBooking(booking: StoredBooking) {
+  ensureStorageConfigured();
+
   if (!hasUpstashConfig()) {
     await appendLocalBooking(booking);
     return { provider: "local-file" as const };

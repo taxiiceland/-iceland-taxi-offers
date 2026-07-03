@@ -10,6 +10,7 @@ import {
   bookingsToReservations,
   createStoredBooking,
   getStoredBookings,
+  redisNotConfiguredMessage,
   saveStoredBooking,
   withBookingLock
 } from "@/lib/booking-storage";
@@ -152,6 +153,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
+    if ((error as Error).message === "REDIS_NOT_CONFIGURED") {
+      return NextResponse.json(
+        { error: redisNotConfiguredMessage },
+        { status: 503 }
+      );
+    }
+
     if ((error as Error).message === "BOOKING_LOCK_BUSY") {
       return NextResponse.json(
         { error: "The booking system is busy. Please try again in a moment." },
