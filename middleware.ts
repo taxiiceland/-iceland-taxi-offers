@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const adminSessionCookie = "ito_admin_session";
+
 function safeCompare(left: string, right: string) {
   const encoder = new TextEncoder();
   const leftBytes = encoder.encode(left);
@@ -15,28 +17,44 @@ function safeCompare(left: string, right: string) {
 }
 
 function unauthorized() {
-  return new NextResponse(null, {
+  const response = new NextResponse(null, {
     status: 401,
     headers: {
       "WWW-Authenticate":
         'Basic realm="Iceland Taxi Offers Admin", charset="UTF-8"',
-      "Cache-Control": "no-store, no-cache, must-revalidate"
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+      Vary: "Authorization, Cookie"
     }
   });
+
+  response.cookies.set(adminSessionCookie, "", {
+    httpOnly: true,
+    maxAge: 0,
+    path: "/",
+    sameSite: "lax",
+    secure: true
+  });
+
+  return response;
 }
 
-function adminCredentialsAreValid(request: NextRequest) {
-  const username = process.env.ADMIN_USERNAME;
-  const password = process.env.ADMIN_PASSWORD;
+async function createAdminSessionToken(username: string, password: string) {
+  const encoder = new TextEncoder();
+  const hash = await crypto.subtle.digest(
+    "SHA-256",
+    encoder.encode(`${username}:${password}`)
+  );
 
-  if (!username || !password) {
-    return "missing-config";
-  }
+  return Array.from(new Uint8Array(hash))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
 
+function getBasicCredentials(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
 
   if (!authHeader?.startsWith("Basic ")) {
-    return false;
+    return null;
   }
 
   try {
@@ -44,23 +62,52 @@ function adminCredentialsAreValid(request: NextRequest) {
     const separatorIndex = decoded.indexOf(":");
 
     if (separatorIndex === -1) {
-      return false;
+      return "invalid";
     }
 
-    const suppliedUsername = decoded.slice(0, separatorIndex);
-    const suppliedPassword = decoded.slice(separatorIndex + 1);
-
-    return (
-      safeCompare(suppliedUsername, username) &&
-      safeCompare(suppliedPassword, password)
-    );
+    return {
+      username: decoded.slice(0, separatorIndex),
+      password: decoded.slice(separatorIndex + 1)
+    };
   } catch {
-    return false;
+    return "invalid";
   }
 }
 
-export function middleware(request: NextRequest) {
-  const credentialsValid = adminCredentialsAreValid(request);
+async function adminCredentialsAreValid(request: NextRequest) {
+  const username = process.env.ADMIN_USERNAME;
+  const password = process.env.ADMIN_PASSWORD;
+
+  if (!username || !password) {
+    return "missing-config";
+  }
+
+  const sessionToken = await createAdminSessionToken(username, password);
+  const basicCredentials = getBasicCredentials(request);
+
+  if (basicCredentials === "invalid") {
+    return false;
+  }
+
+  if (basicCredentials) {
+    return (
+      safeCompare(basicCredentials.username, username) &&
+      safeCompare(basicCredentials.password, password) &&
+      "basic"
+    );
+  }
+
+  const cookieToken = request.cookies.get(adminSessionCookie)?.value;
+
+  if (cookieToken && safeCompare(cookieToken, sessionToken)) {
+    return "cookie";
+  }
+
+  return false;
+}
+
+export async function middleware(request: NextRequest) {
+  const credentialsValid = await adminCredentialsAreValid(request);
 
   if (credentialsValid === "missing-config") {
     return new NextResponse(
@@ -73,7 +120,31 @@ export function middleware(request: NextRequest) {
     return unauthorized();
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  if (credentialsValid === "basic") {
+    const username = process.env.ADMIN_USERNAME;
+    const password = process.env.ADMIN_PASSWORD;
+
+    if (username && password) {
+      response.cookies.set(
+        adminSessionCookie,
+        await createAdminSessionToken(username, password),
+        {
+          httpOnly: true,
+          maxAge: 60 * 60 * 8,
+          path: "/",
+          sameSite: "lax",
+          secure: true
+        }
+      );
+    }
+  }
+
+  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+  response.headers.set("Vary", "Authorization, Cookie");
+
+  return response;
 }
 
 export const config = {

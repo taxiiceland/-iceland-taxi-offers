@@ -16,18 +16,28 @@ const statusLabels: Record<BookingStatus, string> = {
 };
 
 function formatCreatedDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown date";
+  }
+
   return new Intl.DateTimeFormat("en-GB", {
     dateStyle: "medium",
     timeStyle: "short"
-  }).format(new Date(value));
+  }).format(date);
 }
 
 function bookingPrice(booking: StoredBooking) {
-  if (booking.notification.summerPrice === "Price confirmed before booking") {
-    return booking.notification.regularPrice;
+  if (booking.notification?.summerPrice === "Price confirmed before booking") {
+    return booking.notification.regularPrice || "Custom Quote";
   }
 
-  return booking.notification.summerPrice;
+  return (
+    booking.notification?.summerPrice ||
+    booking.notification?.regularPrice ||
+    "Custom Quote"
+  );
 }
 
 function matchesSearch(booking: StoredBooking, search: string) {
@@ -41,6 +51,24 @@ function matchesSearch(booking: StoredBooking, search: string) {
     .join(" ")
     .toLowerCase()
     .includes(query);
+}
+
+function text(value: unknown, fallback = "Not provided") {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const trimmed = value.trim();
+
+  return trimmed || fallback;
+}
+
+function normalizedStatus(status: unknown): BookingStatus {
+  if (bookingStatuses.includes(status as BookingStatus)) {
+    return status as BookingStatus;
+  }
+
+  return "pending";
 }
 
 export default function AdminDashboard({
@@ -160,57 +188,81 @@ export default function AdminDashboard({
 
         <div className="mt-6 grid gap-4">
           {filteredBookings.length > 0 ? (
-            filteredBookings.map((booking) => (
-              <article
-                key={booking.id}
-                className="rounded-2xl border border-white/10 bg-white p-4 text-slate-950 shadow-[0_20px_70px_rgba(0,0,0,0.25)] sm:p-5"
-              >
-                <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-xl font-black">{booking.name}</h2>
-                      <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase text-white">
-                        {statusLabels[booking.status]}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm font-semibold text-slate-500">
-                      Created {formatCreatedDate(booking.createdAt)}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {bookingStatuses.map((status) => (
-                      <button
-                        key={status}
-                        type="button"
-                        disabled={updatingId === booking.id || booking.status === status}
-                        onClick={() => updateStatus(booking.id, status)}
-                        className={`rounded-full px-3 py-2 text-xs font-black uppercase tracking-[0.06em] transition ${
-                          booking.status === status
-                            ? "bg-gold text-slate-950"
-                            : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                        } disabled:cursor-not-allowed disabled:opacity-60`}
-                      >
-                        {statusLabels[status]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            filteredBookings.map((booking) => {
+              const status = normalizedStatus(booking.status);
+              const bookingId = text(booking.id, `${booking.createdAt}-${booking.date}-${booking.time}`);
 
-                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  <Detail label="Phone" value={booking.phone || "Not provided"} />
-                  <Detail label="Email" value={booking.email || "Not provided"} />
-                  <Detail label="Route / tour" value={booking.notification.selectedRoute} />
-                  <Detail label="Price" value={bookingPrice(booking)} />
-                  <Detail label="Pickup" value={booking.pickup} />
-                  <Detail label="Dropoff" value={booking.dropoff} />
-                  <Detail label="Date and time" value={`${booking.date} ${booking.time}`} />
-                  <Detail label="Passengers" value={booking.passengers} />
-                  <Detail label="Suitcases" value={booking.suitcases} />
-                  <Detail label="Special luggage" value={booking.specialLuggage || "None"} />
-                  <Detail label="Notes" value={booking.notes || "None"} wide />
-                </div>
-              </article>
-            ))
+              return (
+                <article
+                  key={bookingId}
+                  className="rounded-2xl border border-white/10 bg-white p-4 text-slate-950 shadow-[0_20px_70px_rgba(0,0,0,0.25)] sm:p-5"
+                >
+                  <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-xl font-black">
+                          {text(booking.name)}
+                        </h2>
+                        <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black uppercase text-white">
+                          {statusLabels[status]}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm font-semibold text-slate-500">
+                        Created {formatCreatedDate(booking.createdAt)}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {bookingStatuses.map((nextStatus) => (
+                        <button
+                          key={nextStatus}
+                          type="button"
+                          disabled={
+                            updatingId === booking.id || status === nextStatus
+                          }
+                          onClick={() => updateStatus(booking.id, nextStatus)}
+                          className={`rounded-full px-3 py-2 text-xs font-black uppercase tracking-[0.06em] transition ${
+                            status === nextStatus
+                              ? "bg-gold text-slate-950"
+                              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                          } disabled:cursor-not-allowed disabled:opacity-60`}
+                        >
+                          {statusLabels[nextStatus]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <Detail label="Phone" value={text(booking.phone)} />
+                    <Detail label="Email" value={text(booking.email)} />
+                    <Detail
+                      label="Route / tour"
+                      value={text(
+                        booking.notification?.selectedRoute || booking.selectedRoute,
+                        "Custom ride"
+                      )}
+                    />
+                    <Detail label="Price" value={bookingPrice(booking)} />
+                    <Detail label="Pickup" value={text(booking.pickup)} />
+                    <Detail label="Dropoff" value={text(booking.dropoff)} />
+                    <Detail
+                      label="Date and time"
+                      value={`${text(booking.date, "Unknown date")} ${text(
+                        booking.time,
+                        "Unknown time"
+                      )}`}
+                    />
+                    <Detail label="Passengers" value={text(booking.passengers)} />
+                    <Detail label="Suitcases" value={text(booking.suitcases)} />
+                    <Detail
+                      label="Special luggage"
+                      value={text(booking.specialLuggage, "None")}
+                    />
+                    <Detail label="Notes" value={text(booking.notes, "None")} wide />
+                  </div>
+                </article>
+              );
+            })
           ) : (
             <div className="rounded-2xl border border-white/10 bg-white/8 p-8 text-center text-sm font-bold text-white/70">
               No bookings match the current search or filter.
