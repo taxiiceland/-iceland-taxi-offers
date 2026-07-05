@@ -17,6 +17,8 @@ type StatusUpdateHandler = (
   booking: StoredBooking,
   status: BookingStatus
 ) => void;
+type CopyBookingHandler = (booking: StoredBooking) => void;
+type OpenMapsHandler = (address: string) => void;
 
 const statusLabels: Record<BookingStatus, string> = {
   pending: "Pending",
@@ -132,6 +134,50 @@ function getBookingsForDate(bookings: StoredBooking[], dateKey: string) {
     .sort((left, right) => text(left.time, "99:99").localeCompare(text(right.time, "99:99")));
 }
 
+function hasContactValue(value: string) {
+  return value !== "Not provided";
+}
+
+function phoneHref(phone: string) {
+  return `tel:${phone.replace(/[^\d+]/g, "")}`;
+}
+
+function emailHref(email: string) {
+  return `mailto:${email}`;
+}
+
+function bookingRoute(booking: StoredBooking) {
+  return text(
+    booking.notification?.selectedRoute || booking.selectedRoute,
+    "Custom ride"
+  );
+}
+
+function buildBookingClipboardText(booking: StoredBooking) {
+  const status = normalizedStatus(booking.status);
+
+  return `Customer: ${text(booking.name)}
+Phone: ${text(booking.phone)}
+Email: ${text(booking.email)}
+
+Route: ${bookingRoute(booking)}
+
+Pickup: ${text(booking.pickup)}
+Drop-off: ${text(booking.dropoff)}
+
+Date: ${text(booking.date, "Unknown date")}
+Time: ${text(booking.time, "Unknown time")}
+
+Passengers: ${text(booking.passengers)}
+Suitcases: ${text(booking.suitcases)}
+Special luggage: ${text(booking.specialLuggage, "None")}
+Notes: ${text(booking.notes, "None")}
+
+Price: ${bookingPrice(booking)}
+
+Status: ${statusLabels[status]}`;
+}
+
 export default function AdminDashboard({
   initialBookings
 }: AdminDashboardProps) {
@@ -184,9 +230,47 @@ export default function AdminDashboard({
   const selectedBookings = getBookingsForDate(filteredBookings, selectedDate);
   const calendarDays = createCalendarDays(visibleMonth);
 
-  function showSuccessToast() {
-    setSuccessMessage("Booking updated successfully.");
+  function showSuccessToast(message = "Booking updated successfully.") {
+    setSuccessMessage(message);
     window.setTimeout(() => setSuccessMessage(""), 3500);
+  }
+
+  function openMaps(address: string) {
+    const query = encodeURIComponent(address);
+    const userAgent = navigator.userAgent;
+    const isAppleDevice = /iPad|iPhone|iPod|Macintosh/i.test(userAgent);
+    const url = isAppleDevice
+      ? `http://maps.apple.com/?q=${query}`
+      : `https://www.google.com/maps/search/?api=1&query=${query}`;
+
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  async function copyBooking(booking: StoredBooking) {
+    setError("");
+    setSuccessMessage("");
+
+    try {
+      const details = buildBookingClipboardText(booking);
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(details);
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = details;
+        textArea.setAttribute("readonly", "");
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+      }
+
+      showSuccessToast("Booking copied.");
+    } catch {
+      setError("Booking details could not be copied.");
+    }
   }
 
   function requestStatusUpdate(booking: StoredBooking, status: BookingStatus) {
@@ -359,6 +443,8 @@ export default function AdminDashboard({
         {activeView === "list" ? (
           <ListView
             bookings={filteredBookings}
+            copyBooking={copyBooking}
+            openMaps={openMaps}
             updatingId={updatingId}
             updateStatus={requestStatusUpdate}
           />
@@ -371,6 +457,8 @@ export default function AdminDashboard({
             setSelectedDate={setSelectedDate}
             todayBookings={todayBookings}
             todayKey={todayKey}
+            copyBooking={copyBooking}
+            openMaps={openMaps}
             updateStatus={requestStatusUpdate}
             updatingId={updatingId}
             visibleMonth={visibleMonth}
@@ -397,10 +485,14 @@ export default function AdminDashboard({
 
 function ListView({
   bookings,
+  copyBooking,
+  openMaps,
   updateStatus,
   updatingId
 }: {
   bookings: StoredBooking[];
+  copyBooking: CopyBookingHandler;
+  openMaps: OpenMapsHandler;
   updateStatus: StatusUpdateHandler;
   updatingId: string;
 }) {
@@ -411,7 +503,9 @@ function ListView({
           <AdminBookingCard
             key={text(booking.id, `${booking.createdAt}-${booking.date}-${booking.time}`)}
             booking={booking}
+            copyBooking={copyBooking}
             mode="full"
+            openMaps={openMaps}
             updateStatus={updateStatus}
             updatingId={updatingId}
           />
@@ -428,7 +522,9 @@ function ListView({
 function CalendarView({
   bookingsByDate,
   calendarDays,
+  copyBooking,
   moveMonth,
+  openMaps,
   selectedBookings,
   selectedDate,
   setSelectedDate,
@@ -440,7 +536,9 @@ function CalendarView({
 }: {
   bookingsByDate: Record<string, StoredBooking[]>;
   calendarDays: Date[];
+  copyBooking: CopyBookingHandler;
   moveMonth: (direction: -1 | 1) => void;
+  openMaps: OpenMapsHandler;
   selectedBookings: StoredBooking[];
   selectedDate: string;
   setSelectedDate: (date: string) => void;
@@ -480,6 +578,8 @@ function CalendarView({
               <CalendarBookingCard
                 key={text(booking.id, `${booking.createdAt}-${booking.date}-${booking.time}`)}
                 booking={booking}
+                copyBooking={copyBooking}
+                openMaps={openMaps}
               />
             ))
           ) : (
@@ -572,7 +672,9 @@ function CalendarView({
               <AdminBookingCard
                 key={text(booking.id, `${booking.createdAt}-${booking.date}-${booking.time}`)}
                 booking={booking}
+                copyBooking={copyBooking}
                 mode="calendar"
+                openMaps={openMaps}
                 updateStatus={updateStatus}
                 updatingId={updatingId}
               />
@@ -590,12 +692,16 @@ function CalendarView({
 
 function AdminBookingCard({
   booking,
+  copyBooking,
   mode,
+  openMaps,
   updateStatus,
   updatingId
 }: {
   booking: StoredBooking;
+  copyBooking: CopyBookingHandler;
   mode: "full" | "calendar";
+  openMaps: OpenMapsHandler;
   updateStatus: StatusUpdateHandler;
   updatingId: string;
 }) {
@@ -671,11 +777,24 @@ function AdminBookingCard({
           </>
         )}
       </div>
+      <BookingQuickActions
+        booking={booking}
+        copyBooking={copyBooking}
+        openMaps={openMaps}
+      />
     </article>
   );
 }
 
-function CalendarBookingCard({ booking }: { booking: StoredBooking }) {
+function CalendarBookingCard({
+  booking,
+  copyBooking,
+  openMaps
+}: {
+  booking: StoredBooking;
+  copyBooking: CopyBookingHandler;
+  openMaps: OpenMapsHandler;
+}) {
   const status = normalizedStatus(booking.status);
 
   return (
@@ -698,6 +817,76 @@ function CalendarBookingCard({ booking }: { booking: StoredBooking }) {
         <Detail label="Drop-off" value={text(booking.dropoff)} />
         <Detail label="Phone" value={text(booking.phone)} />
       </div>
+      <BookingQuickActions
+        booking={booking}
+        copyBooking={copyBooking}
+        openMaps={openMaps}
+      />
+    </div>
+  );
+}
+
+function BookingQuickActions({
+  booking,
+  copyBooking,
+  openMaps
+}: {
+  booking: StoredBooking;
+  copyBooking: CopyBookingHandler;
+  openMaps: OpenMapsHandler;
+}) {
+  const phone = text(booking.phone);
+  const email = text(booking.email);
+  const pickup = text(booking.pickup);
+  const dropoff = text(booking.dropoff);
+  const hasPhone = hasContactValue(phone);
+  const hasEmail = hasContactValue(email);
+  const hasPickup = hasContactValue(pickup);
+  const hasDropoff = hasContactValue(dropoff);
+  const buttonClass =
+    "inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-100 px-3 py-2 text-center text-xs font-black text-slate-800 transition hover:bg-slate-200";
+  const disabledClass =
+    "inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-xl bg-slate-100 px-3 py-2 text-center text-xs font-black text-slate-400 opacity-60";
+
+  return (
+    <div className="mt-4 grid gap-2 border-t border-slate-100 pt-4 sm:grid-cols-2 xl:grid-cols-5">
+      {hasPhone ? (
+        <a className={buttonClass} href={phoneHref(phone)}>
+          📞 Call Customer
+        </a>
+      ) : (
+        <span className={disabledClass}>📞 Call Customer</span>
+      )}
+      {hasEmail ? (
+        <a className={buttonClass} href={emailHref(email)}>
+          📧 Email Customer
+        </a>
+      ) : (
+        <span className={disabledClass}>📧 Email Customer</span>
+      )}
+      <button
+        type="button"
+        disabled={!hasPickup}
+        onClick={() => openMaps(pickup)}
+        className={hasPickup ? buttonClass : disabledClass}
+      >
+        📍 Open Pickup in Maps
+      </button>
+      <button
+        type="button"
+        disabled={!hasDropoff}
+        onClick={() => openMaps(dropoff)}
+        className={hasDropoff ? buttonClass : disabledClass}
+      >
+        📍 Open Drop-off in Maps
+      </button>
+      <button
+        type="button"
+        onClick={() => copyBooking(booking)}
+        className="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-3 py-2 text-center text-xs font-black text-white transition hover:bg-slate-800 sm:col-span-2 xl:col-span-1"
+      >
+        📋 Copy Booking
+      </button>
     </div>
   );
 }
