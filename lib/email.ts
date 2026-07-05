@@ -5,6 +5,25 @@ type EmailResult = {
   configured: boolean;
   provider: "resend" | "not-configured";
   skipped?: boolean;
+  id?: string;
+  status?: number;
+  error?: string;
+};
+
+type ResendEmailPayload = {
+  from: string;
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+  reply_to?: string;
+};
+
+type ResendResponse = {
+  id?: string;
+  name?: string;
+  message?: string;
+  error?: string;
 };
 
 function escapeHtml(value: string) {
@@ -14,6 +33,82 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function maskEmail(email: string) {
+  const [name, domain] = email.split("@");
+
+  if (!domain) {
+    return email;
+  }
+
+  const visible = name.slice(0, 2);
+
+  return `${visible}${name.length > 2 ? "***" : ""}@${domain}`;
+}
+
+async function parseResendResponse(response: Response) {
+  const text = await response.text();
+
+  if (!text) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(text) as ResendResponse;
+  } catch {
+    return { message: text };
+  }
+}
+
+async function sendResendEmail(
+  kind: "owner" | "customer",
+  payload: ResendEmailPayload
+): Promise<EmailResult> {
+  console.info(`[email:${kind}] sending`, {
+    to: maskEmail(payload.to),
+    from: payload.from,
+    subject: payload.subject
+  });
+
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  const result = await parseResendResponse(response);
+
+  if (!response.ok) {
+    const message =
+      result.message ||
+      result.error ||
+      result.name ||
+      "Resend returned an unknown error.";
+
+    console.error(`[email:${kind}] failed`, {
+      to: maskEmail(payload.to),
+      status: response.status,
+      error: message
+    });
+
+    throw new Error(`${kind} email failed (${response.status}): ${message}`);
+  }
+
+  console.info(`[email:${kind}] sent`, {
+    to: maskEmail(payload.to),
+    status: response.status,
+    id: result.id
+  });
+
+  return {
+    configured: true,
+    provider: "resend",
+    id: result.id,
+    status: response.status
+  };
 }
 
 function notificationRows(notification: BookingNotification) {
@@ -156,29 +251,15 @@ export async function sendBookingEmail(
     return { configured: false, provider: "not-configured" };
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      from,
-      to,
-      subject: notification.subject,
-      text: buildTextEmail(notification),
-      html: buildHtmlEmail(notification),
-      reply_to:
-        notification.email === "Not provided" ? undefined : notification.email
-    })
+  return sendResendEmail("owner", {
+    from,
+    to,
+    subject: notification.subject,
+    text: buildTextEmail(notification),
+    html: buildHtmlEmail(notification),
+    reply_to:
+      notification.email === "Not provided" ? undefined : notification.email
   });
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(`Booking email failed: ${message}`);
-  }
-
-  return { configured: true, provider: "resend" };
 }
 
 export async function sendCustomerConfirmationEmail(
@@ -199,26 +280,12 @@ export async function sendCustomerConfirmationEmail(
     return { configured: false, provider: "not-configured" };
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      from,
-      to: notification.email,
-      subject: "Your booking has been received – Iceland Taxi Offers 🚖",
-      text: buildCustomerTextEmail(notification),
-      html: buildCustomerHtmlEmail(notification),
-      reply_to: replyTo
-    })
+  return sendResendEmail("customer", {
+    from,
+    to: notification.email,
+    subject: "Your booking has been received – Iceland Taxi Offers 🚖",
+    text: buildCustomerTextEmail(notification),
+    html: buildCustomerHtmlEmail(notification),
+    reply_to: replyTo
   });
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(`Customer booking email failed: ${message}`);
-  }
-
-  return { configured: true, provider: "resend" };
 }

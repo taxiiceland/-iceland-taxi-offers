@@ -143,13 +143,20 @@ export async function POST(request: Request) {
       const customerEmail = await sendCustomerConfirmationEmail(
         notification
       ).catch((emailError) => {
+        const message =
+          emailError instanceof Error ? emailError.message : String(emailError);
+
         console.error(emailError);
+        console.error("[booking-api] customer confirmation email failed", {
+          bookingId: storedBooking.id,
+          customerEmailProvided: notification.email !== "Not provided",
+          error: message
+        });
 
         return {
           configured: true,
           provider: "resend" as const,
-          error:
-            "Booking was saved, but the customer confirmation email returned an error."
+          error: message
         };
       });
 
