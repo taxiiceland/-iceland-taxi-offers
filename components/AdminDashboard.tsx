@@ -8,7 +8,7 @@ type AdminDashboardProps = {
   initialBookings: StoredBooking[];
 };
 
-type AdminView = "list" | "calendar";
+type AdminView = "list" | "calendar" | "statistics";
 type PendingStatusAction = {
   booking: StoredBooking;
   status: BookingStatus;
@@ -19,6 +19,24 @@ type StatusUpdateHandler = (
 ) => void;
 type CopyBookingHandler = (booking: StoredBooking) => void;
 type OpenMapsHandler = (address: string) => void;
+type ChartDay = {
+  dateKey: string;
+  label: string;
+  bookings: number;
+  revenue: number;
+};
+type StatisticsData = {
+  todayBookings: number;
+  weekBookings: number;
+  monthBookings: number;
+  todayRevenue: number;
+  weekRevenue: number;
+  monthRevenue: number;
+  mostPopularRoute: string;
+  busiestHour: string;
+  statusSummary: Record<BookingStatus, number>;
+  chartDays: ChartDay[];
+};
 
 const statusLabels: Record<BookingStatus, string> = {
   pending: "Pending",
@@ -35,6 +53,7 @@ const statusClasses: Record<BookingStatus, string> = {
 };
 
 const weekdayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const chartDayCount = 30;
 
 function formatCreatedDate(value: string) {
   const date = new Date(value);
@@ -104,6 +123,18 @@ function parseDateKey(dateKey: string) {
   const [year, month, day] = dateKey.split("-").map(Number);
 
   return new Date(year, month - 1, day);
+}
+
+function addDays(date: Date, days: number) {
+  const nextDate = new Date(date);
+
+  nextDate.setDate(date.getDate() + days);
+
+  return nextDate;
+}
+
+function isDateInRange(dateKey: string, startKey: string, endKey: string) {
+  return dateKey >= startKey && dateKey <= endKey;
 }
 
 function monthLabel(date: Date) {
@@ -178,6 +209,114 @@ Price: ${bookingPrice(booking)}
 Status: ${statusLabels[status]}`;
 }
 
+function parseISKPrice(value: string) {
+  if (!value.includes("ISK")) {
+    return 0;
+  }
+
+  const amount = Number(value.replace(/[^\d]/g, ""));
+
+  return Number.isFinite(amount) ? amount : 0;
+}
+
+function bookingRevenue(booking: StoredBooking) {
+  if (normalizedStatus(booking.status) === "cancelled") {
+    return 0;
+  }
+
+  return parseISKPrice(booking.notification?.summerPrice || bookingPrice(booking));
+}
+
+function formatISK(amount: number) {
+  return `${new Intl.NumberFormat("en-US").format(amount)} ISK`;
+}
+
+function getWeekRange(todayKey: string) {
+  const today = parseDateKey(todayKey);
+  const mondayOffset = (today.getDay() + 6) % 7;
+  const start = addDays(today, -mondayOffset);
+  const end = addDays(start, 6);
+
+  return {
+    startKey: toDateKey(start),
+    endKey: toDateKey(end)
+  };
+}
+
+function getMonthRange(todayKey: string) {
+  const today = parseDateKey(todayKey);
+  const start = new Date(today.getFullYear(), today.getMonth(), 1);
+  const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  return {
+    startKey: toDateKey(start),
+    endKey: toDateKey(end)
+  };
+}
+
+function getRouteCounts(bookings: StoredBooking[]) {
+  return bookings
+    .filter((booking) => normalizedStatus(booking.status) !== "cancelled")
+    .reduce<Record<string, number>>((counts, booking) => {
+      const route = bookingRoute(booking);
+
+      counts[route] = (counts[route] ?? 0) + 1;
+
+      return counts;
+    }, {});
+}
+
+function getMostPopularRoute(bookings: StoredBooking[]) {
+  const routeCounts = getRouteCounts(bookings);
+  const [route] =
+    Object.entries(routeCounts).sort((left, right) => right[1] - left[1])[0] ??
+    [];
+
+  return route || "No bookings yet";
+}
+
+function getBusiestBookingHour(bookings: StoredBooking[]) {
+  const hourCounts = bookings
+    .filter((booking) => normalizedStatus(booking.status) !== "cancelled")
+    .reduce<Record<string, number>>((counts, booking) => {
+      const hour = text(booking.time, "").slice(0, 2);
+
+      if (!/^\d{2}$/.test(hour)) {
+        return counts;
+      }
+
+      counts[hour] = (counts[hour] ?? 0) + 1;
+
+      return counts;
+    }, {});
+  const [hour] =
+    Object.entries(hourCounts).sort((left, right) => right[1] - left[1])[0] ??
+    [];
+
+  if (!hour) {
+    return "No bookings yet";
+  }
+
+  const nextHour = String((Number(hour) + 1) % 24).padStart(2, "0");
+
+  return `${hour}:00–${nextHour}:00`;
+}
+
+function getLastThirtyDays(todayKey: string) {
+  const today = parseDateKey(todayKey);
+
+  return Array.from({ length: chartDayCount }, (_, index) =>
+    toDateKey(addDays(today, index - (chartDayCount - 1)))
+  );
+}
+
+function chartLabel(dateKey: string) {
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short"
+  }).format(parseDateKey(dateKey));
+}
+
 export default function AdminDashboard({
   initialBookings
 }: AdminDashboardProps) {
@@ -229,6 +368,61 @@ export default function AdminDashboard({
   const todayBookings = getBookingsForDate(filteredBookings, todayKey);
   const selectedBookings = getBookingsForDate(filteredBookings, selectedDate);
   const calendarDays = createCalendarDays(visibleMonth);
+  const statistics = useMemo<StatisticsData>(() => {
+    const weekRange = getWeekRange(todayKey);
+    const monthRange = getMonthRange(todayKey);
+    const revenueForRange = (startKey: string, endKey: string) =>
+      bookings
+        .filter((booking) =>
+          isDateInRange(text(booking.date, ""), startKey, endKey)
+        )
+        .reduce((total, booking) => total + bookingRevenue(booking), 0);
+    const countForRange = (startKey: string, endKey: string) =>
+      bookings.filter((booking) =>
+        isDateInRange(text(booking.date, ""), startKey, endKey)
+      ).length;
+    const statusSummary = bookingStatuses.reduce<Record<BookingStatus, number>>(
+      (summary, status) => {
+        summary[status] = bookings.filter(
+          (booking) => normalizedStatus(booking.status) === status
+        ).length;
+
+        return summary;
+      },
+      {
+        pending: 0,
+        confirmed: 0,
+        completed: 0,
+        cancelled: 0
+      }
+    );
+    const chartDays = getLastThirtyDays(todayKey).map((dateKey) => {
+      const dayBookings = bookings.filter((booking) => booking.date === dateKey);
+
+      return {
+        dateKey,
+        label: chartLabel(dateKey),
+        bookings: dayBookings.length,
+        revenue: dayBookings.reduce(
+          (total, booking) => total + bookingRevenue(booking),
+          0
+        )
+      };
+    });
+
+    return {
+      todayBookings: countForRange(todayKey, todayKey),
+      weekBookings: countForRange(weekRange.startKey, weekRange.endKey),
+      monthBookings: countForRange(monthRange.startKey, monthRange.endKey),
+      todayRevenue: revenueForRange(todayKey, todayKey),
+      weekRevenue: revenueForRange(weekRange.startKey, weekRange.endKey),
+      monthRevenue: revenueForRange(monthRange.startKey, monthRange.endKey),
+      mostPopularRoute: getMostPopularRoute(bookings),
+      busiestHour: getBusiestBookingHour(bookings),
+      statusSummary,
+      chartDays
+    };
+  }, [bookings, todayKey]);
 
   function showSuccessToast(message = "Booking updated successfully.") {
     setSuccessMessage(message);
@@ -417,8 +611,8 @@ export default function AdminDashboard({
           </label>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 rounded-2xl border border-white/10 bg-white/8 p-1 sm:w-fit">
-          {(["list", "calendar"] as AdminView[]).map((view) => (
+        <div className="mt-4 grid grid-cols-3 rounded-2xl border border-white/10 bg-white/8 p-1 sm:w-fit">
+          {(["list", "calendar", "statistics"] as AdminView[]).map((view) => (
             <button
               key={view}
               type="button"
@@ -429,7 +623,11 @@ export default function AdminDashboard({
                   : "text-white/70 hover:bg-white/10 hover:text-white"
               }`}
             >
-              {view === "list" ? "List View" : "Calendar View"}
+              {view === "list"
+                ? "List View"
+                : view === "calendar"
+                  ? "Calendar View"
+                  : "Statistics"}
             </button>
           ))}
         </div>
@@ -448,7 +646,7 @@ export default function AdminDashboard({
             updatingId={updatingId}
             updateStatus={requestStatusUpdate}
           />
-        ) : (
+        ) : activeView === "calendar" ? (
           <CalendarView
             bookingsByDate={bookingsByDate}
             calendarDays={calendarDays}
@@ -464,6 +662,8 @@ export default function AdminDashboard({
             visibleMonth={visibleMonth}
             moveMonth={moveMonth}
           />
+        ) : (
+          <StatisticsView statistics={statistics} />
         )}
       </div>
       {pendingAction ? (
@@ -479,6 +679,226 @@ export default function AdminDashboard({
           updating={updatingId === pendingAction.booking.id}
         />
       ) : null}
+    </div>
+  );
+}
+
+function StatisticsView({ statistics }: { statistics: StatisticsData }) {
+  return (
+    <div className="mt-6 grid gap-6">
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <StatisticsCard
+          icon="🚖"
+          label="Today's Bookings"
+          value={String(statistics.todayBookings)}
+          detail="Total bookings today"
+        />
+        <StatisticsCard
+          icon="📅"
+          label="This Week"
+          value={`${statistics.weekBookings} bookings`}
+          detail="Monday through Sunday"
+        />
+        <StatisticsCard
+          icon="📆"
+          label="This Month"
+          value={`${statistics.monthBookings} bookings`}
+          detail="Current calendar month"
+        />
+        <RevenueStatisticsCard statistics={statistics} />
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <InsightCard
+          icon="⭐"
+          label="Most Popular Route"
+          value={statistics.mostPopularRoute}
+        />
+        <InsightCard
+          icon="🕒"
+          label="Busiest Booking Hour"
+          value={statistics.busiestHour}
+        />
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-white/8 p-4 sm:p-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-gold">
+              Booking Status Summary
+            </p>
+            <h2 className="mt-2 text-2xl font-black">Current Status</h2>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {bookingStatuses.map((status) => (
+            <div
+              key={status}
+              className="rounded-2xl border border-white/10 bg-white p-4 text-slate-950"
+            >
+              <StatusPill status={status} />
+              <p className="mt-4 text-3xl font-black">
+                {statistics.statusSummary[status]}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-2">
+        <StatisticsChart
+          title="Bookings per day"
+          detail="Last 30 days"
+          data={statistics.chartDays}
+          metric="bookings"
+          formatValue={(value) => String(value)}
+        />
+        <StatisticsChart
+          title="Revenue per day"
+          detail="Last 30 days"
+          data={statistics.chartDays}
+          metric="revenue"
+          formatValue={formatISK}
+        />
+      </section>
+    </div>
+  );
+}
+
+function StatisticsCard({
+  detail,
+  icon,
+  label,
+  value
+}: {
+  detail: string;
+  icon: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white p-4 text-slate-950 shadow-[0_20px_70px_rgba(0,0,0,0.18)] sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
+          {label}
+        </p>
+        <span className="text-2xl" aria-hidden="true">
+          {icon}
+        </span>
+      </div>
+      <p className="mt-4 text-3xl font-black">{value}</p>
+      <p className="mt-2 text-sm font-bold text-slate-500">{detail}</p>
+    </div>
+  );
+}
+
+function RevenueStatisticsCard({
+  statistics
+}: {
+  statistics: StatisticsData;
+}) {
+  return (
+    <div className="rounded-2xl border border-gold/30 bg-gold p-4 text-slate-950 shadow-[0_20px_70px_rgba(0,0,0,0.18)] sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-800">
+          Estimated Revenue
+        </p>
+        <span className="text-2xl" aria-hidden="true">
+          💰
+        </span>
+      </div>
+      <div className="mt-4 grid gap-2">
+        <RevenueLine label="Today" value={formatISK(statistics.todayRevenue)} />
+        <RevenueLine label="This Week" value={formatISK(statistics.weekRevenue)} />
+        <RevenueLine label="This Month" value={formatISK(statistics.monthRevenue)} />
+      </div>
+    </div>
+  );
+}
+
+function RevenueLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-white/35 px-3 py-2">
+      <span className="text-xs font-black uppercase tracking-[0.08em]">
+        {label}
+      </span>
+      <span className="text-sm font-black">{value}</span>
+    </div>
+  );
+}
+
+function InsightCard({
+  icon,
+  label,
+  value
+}: {
+  icon: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/8 p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-gold">
+          {label}
+        </p>
+        <span className="text-2xl" aria-hidden="true">
+          {icon}
+        </span>
+      </div>
+      <p className="mt-4 text-2xl font-black">{value}</p>
+    </div>
+  );
+}
+
+function StatisticsChart({
+  data,
+  detail,
+  formatValue,
+  metric,
+  title
+}: {
+  data: ChartDay[];
+  detail: string;
+  formatValue: (value: number) => string;
+  metric: "bookings" | "revenue";
+  title: string;
+}) {
+  const maxValue = Math.max(...data.map((day) => day[metric]), 1);
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white p-4 text-slate-950 shadow-[0_20px_70px_rgba(0,0,0,0.18)] sm:p-5">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-black">{title}</h2>
+        <p className="text-sm font-bold text-slate-500">{detail}</p>
+      </div>
+      <div className="mt-5 overflow-x-auto pb-2">
+        <div className="flex min-w-[720px] items-end gap-2">
+          {data.map((day, index) => {
+            const value = day[metric];
+            const height = value > 0 ? Math.max((value / maxValue) * 150, 8) : 4;
+            const showLabel = index === 0 || index === data.length - 1 || index % 5 === 0;
+
+            return (
+              <div
+                key={day.dateKey}
+                className="flex flex-1 flex-col items-center gap-2"
+                title={`${day.label}: ${formatValue(value)}`}
+              >
+                <div className="flex h-40 w-full items-end rounded-full bg-slate-100 px-1">
+                  <div
+                    className="w-full rounded-full bg-gold"
+                    style={{ height: `${height}px` }}
+                  />
+                </div>
+                <span className="h-8 text-center text-[0.65rem] font-black leading-3 text-slate-400">
+                  {showLabel ? day.label : ""}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
