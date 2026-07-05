@@ -22,6 +22,9 @@ Add these in Vercel Project Settings > Environment Variables:
 NEXT_PUBLIC_SITE_URL=https://your-domain.com
 NEXT_PUBLIC_GA_ID=
 
+ADMIN_USERNAME=choose_admin_username
+ADMIN_PASSWORD=choose_strong_admin_password
+
 BOOKING_EMAIL_TO=icelandtaxioffers@gmail.com
 BOOKING_EMAIL_FROM=bookings@your-domain.com
 RESEND_API_KEY=your_resend_api_key
@@ -52,6 +55,19 @@ Use Upstash Redis through the Vercel Marketplace or directly from Upstash.
 3. Add them to Vercel as `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
 
 Saved bookings are used to block unavailable times after refresh. Manual unavailable times remain editable in `lib/availability.ts`.
+
+## Admin Dashboard
+
+The admin dashboard is available at `/admin` after deployment. It is protected by browser username/password login.
+
+Add these variables in Vercel:
+
+```bash
+ADMIN_USERNAME=choose_admin_username
+ADMIN_PASSWORD=choose_strong_admin_password
+```
+
+Use a strong password and keep it private.
 
 ## Custom Domain
 

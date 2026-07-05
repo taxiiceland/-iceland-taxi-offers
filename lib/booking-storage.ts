@@ -3,10 +3,11 @@ import path from "path";
 import { randomUUID } from "crypto";
 import type { BookingNotification, BookingRequest } from "./booking";
 import type { Reservation } from "./availability";
+import { bookingStatuses, type BookingStatus } from "./booking-status";
 
 export type StoredBooking = BookingRequest & {
   id: string;
-  status: "reserved";
+  status: BookingStatus;
   createdAt: string;
   reservation: Reservation;
   notification: BookingNotification;
@@ -74,7 +75,7 @@ async function redisCommand<T>(command: Array<string | number>) {
 async function readLocalBookings() {
   try {
     const contents = await fs.readFile(localDataFile, "utf8");
-    return JSON.parse(contents) as StoredBooking[];
+    return (JSON.parse(contents) as StoredBooking[]).map(normalizeStoredBooking);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return [];
@@ -84,12 +85,16 @@ async function readLocalBookings() {
   }
 }
 
+async function writeLocalBookings(bookings: StoredBooking[]) {
+  await fs.mkdir(path.dirname(localDataFile), { recursive: true });
+  await fs.writeFile(localDataFile, JSON.stringify(bookings, null, 2));
+}
+
 async function appendLocalBooking(booking: StoredBooking) {
   const bookings = await readLocalBookings();
 
   bookings.push(booking);
-  await fs.mkdir(path.dirname(localDataFile), { recursive: true });
-  await fs.writeFile(localDataFile, JSON.stringify(bookings, null, 2));
+  await writeLocalBookings(bookings);
 }
 
 async function withLocalLock<T>(callback: () => Promise<T>) {
@@ -164,7 +169,7 @@ export async function getStoredBookings() {
 
   const rows = await redisCommand<string[]>(["LRANGE", bookingsKey, 0, -1]);
 
-  return rows.map((row) => JSON.parse(row) as StoredBooking);
+  return rows.map((row) => normalizeStoredBooking(JSON.parse(row) as StoredBooking));
 }
 
 export async function saveStoredBooking(booking: StoredBooking) {
@@ -180,7 +185,72 @@ export async function saveStoredBooking(booking: StoredBooking) {
 }
 
 export function bookingsToReservations(bookings: StoredBooking[]) {
-  return bookings.map((booking) => booking.reservation);
+  return bookings
+    .filter((booking) => normalizeBookingStatus(booking.status) !== "cancelled")
+    .map((booking) => booking.reservation);
+}
+
+export async function updateStoredBookingStatus(
+  bookingId: string,
+  status: BookingStatus
+) {
+  ensureStorageConfigured();
+
+  if (!bookingStatuses.includes(status)) {
+    throw new Error("INVALID_BOOKING_STATUS");
+  }
+
+  if (!hasUpstashConfig()) {
+    const bookings = await readLocalBookings();
+    const index = bookings.findIndex((booking) => booking.id === bookingId);
+
+    if (index === -1) {
+      return null;
+    }
+
+    const updatedBooking = { ...bookings[index], status };
+    bookings[index] = updatedBooking;
+    await writeLocalBookings(bookings);
+
+    return updatedBooking;
+  }
+
+  const rows = await redisCommand<string[]>(["LRANGE", bookingsKey, 0, -1]);
+  const index = rows.findIndex((row) => {
+    const booking = JSON.parse(row) as StoredBooking;
+
+    return booking.id === bookingId;
+  });
+
+  if (index === -1) {
+    return null;
+  }
+
+  const booking = normalizeStoredBooking(JSON.parse(rows[index]) as StoredBooking);
+  const updatedBooking = { ...booking, status };
+
+  await redisCommand<string>(["LSET", bookingsKey, index, JSON.stringify(updatedBooking)]);
+
+  return updatedBooking;
+}
+
+export function normalizeBookingStatus(status: string | undefined): BookingStatus {
+  if (status === "reserved") {
+    return "pending";
+  }
+
+  if (bookingStatuses.includes(status as BookingStatus)) {
+    return status as BookingStatus;
+  }
+
+  return "pending";
+}
+
+function normalizeStoredBooking(booking: StoredBooking): StoredBooking {
+  return {
+    ...booking,
+    status: normalizeBookingStatus(booking.status)
+  };
 }
 
 export function createStoredBooking(
@@ -191,7 +261,7 @@ export function createStoredBooking(
   return {
     ...booking,
     id: randomUUID(),
-    status: "reserved",
+    status: "pending",
     createdAt: new Date().toISOString(),
     reservation,
     notification
