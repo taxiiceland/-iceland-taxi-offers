@@ -15,10 +15,12 @@ function safeCompare(left: string, right: string) {
 }
 
 function unauthorized() {
-  return new NextResponse("Admin login required.", {
+  return new NextResponse(null, {
     status: 401,
     headers: {
-      "WWW-Authenticate": 'Basic realm="Iceland Taxi Offers Admin"'
+      "WWW-Authenticate":
+        'Basic realm="Iceland Taxi Offers Admin", charset="UTF-8"',
+      "Cache-Control": "no-store, no-cache, must-revalidate"
     }
   });
 }
