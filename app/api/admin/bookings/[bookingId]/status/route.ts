@@ -5,6 +5,7 @@ import {
   updateStoredBookingStatus,
   withBookingLock
 } from "@/lib/booking-storage";
+import { sendCustomerStatusEmail } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   const { bookingId } = await context.params;
   const payload = (await request.json().catch(() => null)) as {
     status?: unknown;
+    cancellationReason?: unknown;
   } | null;
 
   if (!payload || !isBookingStatus(payload.status)) {
@@ -32,6 +34,10 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   const nextStatus = payload.status;
+  const cancellationReason =
+    typeof payload.cancellationReason === "string"
+      ? payload.cancellationReason.trim().slice(0, 1000)
+      : "";
 
   try {
     const booking = await withBookingLock(() =>
@@ -45,7 +51,36 @@ export async function PATCH(request: Request, context: RouteContext) {
       );
     }
 
-    return NextResponse.json({ booking });
+    const customerEmail =
+      nextStatus === "confirmed" ||
+      nextStatus === "completed" ||
+      nextStatus === "cancelled"
+        ? await sendCustomerStatusEmail(
+            booking.notification,
+            nextStatus,
+            nextStatus === "cancelled" ? cancellationReason : undefined
+          ).catch((emailError) => {
+            console.error("[admin-status] customer status email failed", {
+              bookingId,
+              nextStatus,
+              error:
+                emailError instanceof Error
+                  ? emailError.message
+                  : "Unknown customer status email error"
+            });
+
+            return {
+              configured: true,
+              provider: "resend" as const,
+              error:
+                emailError instanceof Error
+                  ? emailError.message
+                  : "Unknown customer status email error"
+            };
+          })
+        : undefined;
+
+    return NextResponse.json({ booking, customerEmail });
   } catch (error) {
     if ((error as Error).message === "REDIS_NOT_CONFIGURED") {
       return NextResponse.json(

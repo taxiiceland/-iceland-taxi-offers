@@ -9,6 +9,14 @@ type AdminDashboardProps = {
 };
 
 type AdminView = "list" | "calendar";
+type PendingStatusAction = {
+  booking: StoredBooking;
+  status: BookingStatus;
+};
+type StatusUpdateHandler = (
+  booking: StoredBooking,
+  status: BookingStatus
+) => void;
 
 const statusLabels: Record<BookingStatus, string> = {
   pending: "Pending",
@@ -138,6 +146,9 @@ export default function AdminDashboard({
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState(todayKey);
+  const [pendingAction, setPendingAction] = useState<PendingStatusAction | null>(null);
+  const [cancellationReason, setCancellationReason] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [updatingId, setUpdatingId] = useState("");
   const [error, setError] = useState("");
 
@@ -173,7 +184,50 @@ export default function AdminDashboard({
   const selectedBookings = getBookingsForDate(filteredBookings, selectedDate);
   const calendarDays = createCalendarDays(visibleMonth);
 
-  async function updateStatus(bookingId: string, status: BookingStatus) {
+  function showSuccessToast() {
+    setSuccessMessage("Booking updated successfully.");
+    window.setTimeout(() => setSuccessMessage(""), 3500);
+  }
+
+  function requestStatusUpdate(booking: StoredBooking, status: BookingStatus) {
+    setError("");
+    setSuccessMessage("");
+
+    if (
+      status === "confirmed" ||
+      status === "completed" ||
+      status === "cancelled"
+    ) {
+      setPendingAction({ booking, status });
+      setCancellationReason("");
+      return;
+    }
+
+    void updateStatus(booking.id, status);
+  }
+
+  async function confirmPendingAction() {
+    if (!pendingAction) {
+      return;
+    }
+
+    const didUpdate = await updateStatus(
+      pendingAction.booking.id,
+      pendingAction.status,
+      pendingAction.status === "cancelled" ? cancellationReason : undefined
+    );
+
+    if (didUpdate) {
+      setPendingAction(null);
+      setCancellationReason("");
+    }
+  }
+
+  async function updateStatus(
+    bookingId: string,
+    status: BookingStatus,
+    reason?: string
+  ) {
     setError("");
     setUpdatingId(bookingId);
 
@@ -183,7 +237,7 @@ export default function AdminDashboard({
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, cancellationReason: reason || "" })
       });
       const payload = (await response.json()) as {
         booking?: StoredBooking;
@@ -199,12 +253,15 @@ export default function AdminDashboard({
           booking.id === bookingId ? payload.booking! : booking
         )
       );
+      showSuccessToast();
+      return true;
     } catch (updateError) {
       setError(
         updateError instanceof Error
           ? updateError.message
           : "Booking status could not be updated."
       );
+      return false;
     } finally {
       setUpdatingId("");
     }
@@ -218,6 +275,14 @@ export default function AdminDashboard({
 
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-6 text-white sm:px-6 lg:px-8">
+      {successMessage ? (
+        <div
+          role="status"
+          className="fixed right-4 top-4 z-50 rounded-2xl border border-emerald-400/30 bg-emerald-500 px-4 py-3 text-sm font-black text-white shadow-[0_16px_45px_rgba(0,0,0,0.25)]"
+        >
+          {successMessage}
+        </div>
+      ) : null}
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col gap-5 border-b border-white/10 pb-6 md:flex-row md:items-end md:justify-between">
           <div>
@@ -295,7 +360,7 @@ export default function AdminDashboard({
           <ListView
             bookings={filteredBookings}
             updatingId={updatingId}
-            updateStatus={updateStatus}
+            updateStatus={requestStatusUpdate}
           />
         ) : (
           <CalendarView
@@ -306,13 +371,26 @@ export default function AdminDashboard({
             setSelectedDate={setSelectedDate}
             todayBookings={todayBookings}
             todayKey={todayKey}
-            updateStatus={updateStatus}
+            updateStatus={requestStatusUpdate}
             updatingId={updatingId}
             visibleMonth={visibleMonth}
             moveMonth={moveMonth}
           />
         )}
       </div>
+      {pendingAction ? (
+        <StatusConfirmationModal
+          action={pendingAction}
+          cancellationReason={cancellationReason}
+          onCancel={() => {
+            setPendingAction(null);
+            setCancellationReason("");
+          }}
+          onConfirm={confirmPendingAction}
+          onReasonChange={setCancellationReason}
+          updating={updatingId === pendingAction.booking.id}
+        />
+      ) : null}
     </div>
   );
 }
@@ -323,7 +401,7 @@ function ListView({
   updatingId
 }: {
   bookings: StoredBooking[];
-  updateStatus: (bookingId: string, status: BookingStatus) => Promise<void>;
+  updateStatus: StatusUpdateHandler;
   updatingId: string;
 }) {
   return (
@@ -368,7 +446,7 @@ function CalendarView({
   setSelectedDate: (date: string) => void;
   todayBookings: StoredBooking[];
   todayKey: string;
-  updateStatus: (bookingId: string, status: BookingStatus) => Promise<void>;
+  updateStatus: StatusUpdateHandler;
   updatingId: string;
   visibleMonth: Date;
 }) {
@@ -518,7 +596,7 @@ function AdminBookingCard({
 }: {
   booking: StoredBooking;
   mode: "full" | "calendar";
-  updateStatus: (bookingId: string, status: BookingStatus) => Promise<void>;
+  updateStatus: StatusUpdateHandler;
   updatingId: string;
 }) {
   const status = normalizedStatus(booking.status);
@@ -632,7 +710,7 @@ function StatusButtons({
 }: {
   booking: StoredBooking;
   status: BookingStatus;
-  updateStatus: (bookingId: string, status: BookingStatus) => Promise<void>;
+  updateStatus: StatusUpdateHandler;
   updatingId: string;
 }) {
   return (
@@ -642,7 +720,7 @@ function StatusButtons({
           key={nextStatus}
           type="button"
           disabled={updatingId === booking.id || status === nextStatus}
-          onClick={() => updateStatus(booking.id, nextStatus)}
+          onClick={() => updateStatus(booking, nextStatus)}
           className={`rounded-full px-3 py-2 text-xs font-black uppercase tracking-[0.06em] transition ${
             status === nextStatus
               ? "bg-gold text-slate-950"
@@ -663,6 +741,102 @@ function StatusPill({ status }: { status: BookingStatus }) {
     >
       {statusLabels[status]}
     </span>
+  );
+}
+
+function StatusConfirmationModal({
+  action,
+  cancellationReason,
+  onCancel,
+  onConfirm,
+  onReasonChange,
+  updating
+}: {
+  action: PendingStatusAction;
+  cancellationReason: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+  onReasonChange: (value: string) => void;
+  updating: boolean;
+}) {
+  const isCancellation = action.status === "cancelled";
+  const route = text(
+    action.booking.notification?.selectedRoute || action.booking.selectedRoute,
+    "Custom ride"
+  );
+  const question = isCancellation
+    ? "Are you sure you want to cancel this booking?"
+    : action.status === "confirmed"
+      ? "Are you sure you want to confirm this booking?"
+      : "Are you sure you want to mark this booking as completed?";
+  const confirmLabel = isCancellation
+    ? "Cancel Booking"
+    : action.status === "confirmed"
+      ? "Confirm Booking"
+      : "Mark Completed";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/75 px-4 py-5 backdrop-blur-sm sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="status-confirmation-title"
+    >
+      <div className="w-full max-w-lg rounded-3xl bg-white p-5 text-slate-950 shadow-[0_24px_90px_rgba(0,0,0,0.35)] sm:p-6">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-gold">
+          Booking Status
+        </p>
+        <h2 id="status-confirmation-title" className="mt-3 text-2xl font-black">
+          {question}
+        </h2>
+        <div className="mt-4 grid gap-3 rounded-2xl bg-slate-50 p-4">
+          <Detail label="Customer" value={text(action.booking.name)} />
+          <Detail
+            label="Date and time"
+            value={`${text(action.booking.date, "Unknown date")} ${text(
+              action.booking.time,
+              "Unknown time"
+            )}`}
+          />
+          <Detail label="Route" value={route} />
+        </div>
+
+        {isCancellation ? (
+          <label className="mt-4 grid gap-2 text-sm font-bold text-slate-700">
+            Cancellation reason optional
+            <textarea
+              className="min-h-28 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-950 outline-none transition focus:border-gold focus:ring-4 focus:ring-gold/20"
+              value={cancellationReason}
+              onChange={(event) => onReasonChange(event.target.value)}
+              placeholder="Add a short reason for the customer email..."
+            />
+          </label>
+        ) : null}
+
+        <div className="mt-5 grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={updating}
+            className="rounded-full bg-slate-100 px-4 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Go Back
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={updating}
+            className={`rounded-full px-4 py-3 text-sm font-black text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${
+              isCancellation
+                ? "bg-rose-600 hover:bg-rose-700"
+                : "bg-slate-950 hover:bg-slate-800"
+            }`}
+          >
+            {updating ? "Updating..." : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

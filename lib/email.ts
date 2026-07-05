@@ -289,3 +289,165 @@ export async function sendCustomerConfirmationEmail(
     reply_to: replyTo
   });
 }
+
+type CustomerStatusEmailType = "confirmed" | "completed" | "cancelled";
+
+const customerStatusSubjects: Record<CustomerStatusEmailType, string> = {
+  confirmed: "Your Iceland Taxi Offers booking is confirmed",
+  completed: "Thank you for choosing Iceland Taxi Offers",
+  cancelled: "Your Iceland Taxi Offers booking has been cancelled"
+};
+
+function bookingStatusRows(
+  notification: BookingNotification,
+  cancellationReason?: string
+) {
+  const rows = [
+    ["Customer name", notification.customerName],
+    ["Booking date & time", `${notification.date} ${notification.time}`],
+    ["Route", notification.selectedRoute],
+    ["Pickup", notification.pickup],
+    ["Drop-off", notification.dropoff]
+  ];
+  const reason = cancellationReason?.trim();
+
+  if (reason) {
+    rows.push(["Cancellation reason", reason]);
+  }
+
+  return rows;
+}
+
+function buildCustomerStatusTextEmail(
+  notification: BookingNotification,
+  status: CustomerStatusEmailType,
+  cancellationReason?: string
+) {
+  const details = bookingStatusRows(notification, cancellationReason)
+    .map(([label, value]) => `${label}: ${value}`)
+    .join("\n");
+
+  if (status === "cancelled") {
+    return `Your Iceland Taxi Offers booking has been cancelled.
+
+Booking details:
+${details}
+
+We sincerely apologize for the inconvenience.
+If you would like to arrange another ride, simply reply to this email.
+
+— Iceland Taxi Offers`;
+  }
+
+  if (status === "completed") {
+    return `Thank you for choosing Iceland Taxi Offers.
+
+We hope everything went smoothly with your ride. We would be happy to welcome you again whenever you need a private taxi, airport transfer, or private tour in Iceland.
+
+Booking details:
+${details}
+
+Best regards,
+Iceland Taxi Offers
+Licensed Icelandic Taxi Driver`;
+  }
+
+  return `Your Iceland Taxi Offers booking is confirmed.
+
+Booking details:
+${details}
+
+No online payment is required. Payment is made after the ride by card terminal or cash.
+
+Best regards,
+Iceland Taxi Offers
+Licensed Icelandic Taxi Driver`;
+}
+
+function buildCustomerStatusHtmlEmail(
+  notification: BookingNotification,
+  status: CustomerStatusEmailType,
+  cancellationReason?: string
+) {
+  const rows = bookingStatusRows(notification, cancellationReason)
+    .map(
+      ([label, value]) => `
+        <tr>
+          <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#475569;font-weight:700;">${escapeHtml(label)}</td>
+          <td style="padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#0f172a;font-weight:800;">${escapeHtml(value)}</td>
+        </tr>`
+    )
+    .join("");
+
+  if (status === "cancelled") {
+    return `
+      <div style="font-family:Arial,sans-serif;color:#0f172a;line-height:1.6;">
+        <h1 style="margin:0 0 16px;font-size:24px;">Your booking has been cancelled</h1>
+        <table style="border-collapse:collapse;width:100%;max-width:720px;border:1px solid #e5e7eb;">
+          <tbody>${rows}</tbody>
+        </table>
+        <p style="margin:20px 0 0;">We sincerely apologize for the inconvenience.<br />If you would like to arrange another ride, simply reply to this email.</p>
+        <p style="margin:20px 0 0;">— Iceland Taxi Offers</p>
+      </div>`;
+  }
+
+  if (status === "completed") {
+    return `
+      <div style="font-family:Arial,sans-serif;color:#0f172a;line-height:1.6;">
+        <h1 style="margin:0 0 16px;font-size:24px;">Thank you for choosing Iceland Taxi Offers</h1>
+        <p style="margin:0 0 18px;">We hope everything went smoothly with your ride. We would be happy to welcome you again whenever you need a private taxi, airport transfer, or private tour in Iceland.</p>
+        <table style="border-collapse:collapse;width:100%;max-width:720px;border:1px solid #e5e7eb;">
+          <tbody>${rows}</tbody>
+        </table>
+        <p style="margin:20px 0 0;">Best regards,<br />Iceland Taxi Offers<br />Licensed Icelandic Taxi Driver</p>
+      </div>`;
+  }
+
+  return `
+    <div style="font-family:Arial,sans-serif;color:#0f172a;line-height:1.6;">
+      <h1 style="margin:0 0 16px;font-size:24px;">Your booking is confirmed</h1>
+      <table style="border-collapse:collapse;width:100%;max-width:720px;border:1px solid #e5e7eb;">
+        <tbody>${rows}</tbody>
+      </table>
+      <p style="margin:20px 0 0;">No online payment is required. Payment is made after the ride by card terminal or cash.</p>
+      <p style="margin:20px 0 0;">Best regards,<br />Iceland Taxi Offers<br />Licensed Icelandic Taxi Driver</p>
+    </div>`;
+}
+
+export async function sendCustomerStatusEmail(
+  notification: BookingNotification,
+  status: CustomerStatusEmailType,
+  cancellationReason?: string
+): Promise<EmailResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.BOOKING_EMAIL_FROM;
+  const replyTo = process.env.BOOKING_EMAIL_TO || contact.email;
+
+  if (notification.email === "Not provided") {
+    return { configured: true, provider: "resend", skipped: true };
+  }
+
+  if (!apiKey || !from) {
+    console.warn(
+      "Customer status email not sent: RESEND_API_KEY and BOOKING_EMAIL_FROM are not configured."
+    );
+    return { configured: false, provider: "not-configured" };
+  }
+
+  return sendResendEmail("customer", {
+    from,
+    to: notification.email,
+    subject: customerStatusSubjects[status],
+    text: buildCustomerStatusTextEmail(
+      notification,
+      status,
+      cancellationReason
+    ),
+    html: buildCustomerStatusHtmlEmail(
+      notification,
+      status,
+      cancellationReason
+    ),
+    reply_to: replyTo
+  });
+}
