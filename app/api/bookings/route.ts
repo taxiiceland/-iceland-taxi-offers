@@ -14,7 +14,10 @@ import {
   saveStoredBooking,
   withBookingLock
 } from "@/lib/booking-storage";
-import { sendBookingEmail } from "@/lib/email";
+import {
+  sendBookingEmail,
+  sendCustomerConfirmationEmail
+} from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -137,13 +140,26 @@ export async function POST(request: Request) {
           error: "Booking was saved, but the email provider returned an error."
         };
       });
+      const customerEmail = await sendCustomerConfirmationEmail(
+        notification
+      ).catch((emailError) => {
+        console.error(emailError);
+
+        return {
+          configured: true,
+          provider: "resend" as const,
+          error:
+            "Booking was saved, but the customer confirmation email returned an error."
+        };
+      });
 
       return {
         status: "reserved" as const,
         notification,
         bookingId: storedBooking.id,
         storage,
-        email
+        email,
+        customerEmail
       };
     });
 
