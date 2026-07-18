@@ -30,7 +30,7 @@ export default function WhyChooseUs() {
       <div className="section-shell">
         <SectionHeading
           eyebrow="Why choose us"
-          title="Simple Peace of Mind"
+          title="Why Choose This Reykjavík Taxi Driver"
           align="center"
         />
 

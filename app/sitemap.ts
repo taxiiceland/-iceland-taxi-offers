@@ -2,18 +2,18 @@ import type { MetadataRoute } from "next";
 import { absoluteUrl } from "@/lib/seo";
 
 const routes = [
-  "/",
-  "/privacy-policy",
-  "/terms-and-conditions",
-  "/cancellation-policy",
-  "/contact"
-];
+  { path: "/", changeFrequency: "weekly", priority: 1 },
+  { path: "/contact", changeFrequency: "weekly", priority: 0.85 },
+  { path: "/privacy-policy", changeFrequency: "monthly", priority: 0.45 },
+  { path: "/terms-and-conditions", changeFrequency: "monthly", priority: 0.45 },
+  { path: "/cancellation-policy", changeFrequency: "monthly", priority: 0.45 }
+] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return routes.map((route) => ({
-    url: absoluteUrl(route),
+    url: absoluteUrl(route.path),
     lastModified: new Date(),
-    changeFrequency: route === "/" ? "weekly" : "monthly",
-    priority: route === "/" ? 1 : 0.7
+    changeFrequency: route.changeFrequency,
+    priority: route.priority
   }));
 }

@@ -253,8 +253,8 @@ export default function BookingForm() {
           <div className="lg:sticky lg:top-28">
             <SectionHeading
               eyebrow="Book now"
-              title="Reserve Your Taxi"
-              copy="Choose a route, select an available time, and add the essentials."
+              title="Reserve Your Iceland Taxi"
+              copy="Choose your airport transfer, Reykjavík taxi ride, private tour, or custom destination and select an available time."
             />
 
             <div className="mt-6 rounded-2xl bg-midnight p-5 text-white shadow-soft">

@@ -13,9 +13,9 @@ export default function DiscountBanner() {
                   Summer Offers
                 </p>
               </div>
-              <p className="mt-4 text-3xl font-semibold leading-tight">
+              <h2 className="mt-4 text-3xl font-semibold leading-tight">
                 Limited-time savings on airport transfers and private tours.
-              </p>
+              </h2>
             </div>
             <div className="border-b border-slate-100 p-6 sm:p-8 md:border-b-0 md:border-r">
               <Plane className="h-7 w-7 text-gold" aria-hidden="true" />

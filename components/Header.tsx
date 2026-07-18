@@ -8,10 +8,10 @@ import { useState } from "react";
 
 const links = [
   { label: "Home", href: siteLinks.home },
-  { label: "Airport", href: siteLinks.airport },
-  { label: "Tours", href: siteLinks.tours },
+  { label: "Airport Transfer", href: siteLinks.airport },
+  { label: "Private Tours", href: siteLinks.tours },
   { label: "Offers", href: siteLinks.offers },
-  { label: "Book", href: siteLinks.book },
+  { label: "Book Now", href: siteLinks.book },
   { label: "Contact", href: siteLinks.contact }
 ];
 

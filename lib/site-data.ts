@@ -44,89 +44,89 @@ export const tourCards = [
   {
     price: prices.goldenCircle,
     title: "Golden Circle",
-    description: "Visit Þingvellir, Geysir and Gullfoss.",
+    description: "Private Golden Circle taxi tour to Þingvellir, Geysir and Gullfoss.",
     image: images.goldenCircle,
-    alt: "Golden Circle private taxi tour in Iceland",
+    alt: "Golden Circle taxi tour from Reykjavík to Þingvellir, Geysir and Gullfoss",
     gallery: ["Þingvellir", "Geysir", "Gullfoss"]
   },
   {
     price: prices.southCoast,
     title: "South Coast",
-    description: "Waterfalls, black sand beaches and scenery.",
+    description: "South Coast private tour with waterfalls, glaciers and black sand beaches.",
     image: images.southCoast,
-    alt: "South Coast private tour in Iceland with black sand beach",
+    alt: "South Coast private taxi tour in Iceland with waterfalls and black sand beach",
     gallery: ["Seljalandsfoss", "Skógafoss", "Reynisfjara", "Vík"]
   },
   {
     price: prices.silverCircle,
     title: "Silver Circle",
-    description: "Hidden waterfalls, hot springs and countryside.",
+    description: "Private taxi tour to Silver Circle waterfalls, hot springs and countryside.",
     image: images.silverCircle,
-    alt: "Silver Circle private tour waterfalls in Iceland",
+    alt: "Silver Circle private taxi tour to waterfalls and hot springs in Iceland",
     gallery: ["Hraunfossar", "Barnafoss", "Deildartunguhver"]
   },
   {
     price: prices.snaefellsnes,
     title: "Snæfellsnes Peninsula",
-    description: "Mountains, coastlines and volcanic landscapes.",
+    description: "Private Snæfellsnes Peninsula tour with mountains, coast and lava fields.",
     image: images.snaefellsnes,
-    alt: "Snæfellsnes Peninsula private tour in Iceland",
+    alt: "Snæfellsnes Peninsula private taxi tour with Iceland coast and mountains",
     gallery: ["Kirkjufell", "Arnarstapi", "Djúpalónssandur"]
   },
   {
     price: prices.blueLagoon,
     title: "Blue Lagoon Return",
-    description: "Relax at Iceland’s famous geothermal spa.",
+    description: "Blue Lagoon taxi return ride from Reykjavík with private driver service.",
     image: images.blueLagoon,
-    alt: "Blue Lagoon return private taxi in Iceland",
+    alt: "Blue Lagoon taxi return transfer from Reykjavík in Iceland",
     gallery: ["Blue Lagoon", "Gunnuhver", "Bridge Between Continents"]
   },
   {
     price: prices.reykjanesLavaTour,
     title: "Grindavík / Reykjanes Lava Tour",
-    description: "Lava fields, geothermal areas and dramatic coastline.",
+    description: "Private Reykjanes taxi tour to lava fields, geothermal areas and coast.",
     image: images.reykjanes,
-    alt: "Reykjanes lava tour near Grindavík in Iceland",
+    alt: "Reykjanes and Grindavík lava private taxi tour in Iceland",
     gallery: ["Grindavík", "Gunnuhver", "Bridge Between Continents", "Lava fields"]
   },
   {
     price: prices.reykjavikSightseeing,
     title: "Reykjavík Sightseeing",
-    description: "Private sightseeing around Reykjavík highlights.",
+    description: "Private Reykjavík taxi sightseeing around city landmarks and viewpoints.",
     image: images.reykjavik,
-    alt: "Reykjavík sightseeing private taxi tour",
+    alt: "Reykjavík taxi sightseeing private tour around city highlights",
     gallery: ["Hallgrímskirkja", "Harpa", "Sun Voyager", "City viewpoints"]
   },
   {
     price: prices.cityCenter,
     title: "City Center",
-    description: "Quick private city-center transfer.",
+    description: "Quick Reykjavík taxi transfer for city-center pickup and drop-off.",
     image: images.reykjavik,
-    alt: "Reykjavík city center private taxi",
+    alt: "Reykjavík city center taxi transfer with private driver",
     gallery: ["Downtown Reykjavík", "City Center", "Local pickup"]
   },
   {
     price: prices.hvammsvikOneWay,
     title: "Hvammsvík One Way",
-    description: "Private one-way ride to Hvammsvík.",
+    description: "Private taxi one-way ride from Reykjavík to Hvammsvík.",
     image: images.reykjavik,
-    alt: "Hvammsvík one way private taxi from Reykjavík",
+    alt: "Hvammsvík one way private taxi from Reykjavík Iceland",
     gallery: ["Hvammsvík", "Scenic route", "Private ride"]
   },
   {
     price: prices.hvammsvikReturn,
     title: "Hvammsvík Return",
-    description: "Private return ride with 4 hours total.",
+    description: "Private Hvammsvík return taxi ride from Reykjavík with flexible timing.",
     image: images.reykjavik,
-    alt: "Hvammsvík return private taxi from Reykjavík",
+    alt: "Hvammsvík return private taxi from Reykjavík Iceland",
     gallery: ["Hvammsvík", "Return ride", "4 hours total"]
   },
   {
     price: prices.customTrip,
     title: "Custom Private Trip",
-    description: "Tell us where you want to go.",
+    description: "Plan a custom private taxi trip in Iceland with pickup and destination.",
     image: images.customTrip,
-    alt: "Custom private driver Iceland road trip",
+    alt: "Custom private taxi Iceland road trip with licensed driver",
     gallery: ["Private route", "Flexible stops", "Local advice"]
   }
 ];

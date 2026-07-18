@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
-import { absoluteUrl } from "@/lib/seo";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy | Iceland Taxi Offers",
+export const metadata: Metadata = createPageMetadata({
+  title: "Privacy Policy | Iceland Taxi Offers Taxi Bookings",
   description:
-    "Privacy Policy for Iceland Taxi Offers private taxi, airport transfer, and tour bookings in Iceland.",
-  alternates: {
-    canonical: absoluteUrl("/privacy-policy")
-  },
-  openGraph: {
-    url: absoluteUrl("/privacy-policy")
-  }
-};
+    "Read how Iceland Taxi Offers handles customer details for Iceland taxi bookings, Keflavík Airport transfers, Reykjavík rides, and private tours.",
+  path: "/privacy-policy"
+});
 
 export default function PrivacyPolicyPage() {
   return (

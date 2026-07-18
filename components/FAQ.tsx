@@ -35,7 +35,7 @@ export default function FAQ() {
       <div className="section-shell">
         <SectionHeading
           eyebrow="FAQ"
-          title="Quick Answers"
+          title="Iceland Taxi Booking Questions"
           copy="Short answers for booking an Iceland taxi, Keflavík airport transfer, or private driver in Iceland."
         />
 

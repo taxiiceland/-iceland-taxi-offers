@@ -13,7 +13,9 @@ export default function NeedHelp() {
           <p className="mt-6 text-sm font-black uppercase tracking-[0.14em] text-gold">
             Need Help?
           </p>
-          <h2 className="mt-2 text-4xl font-black">Call 24/7</h2>
+          <h2 className="mt-2 text-4xl font-black">
+            Call Iceland Taxi Offers 24/7
+          </h2>
           <a
             href={telLink()}
             className="mt-4 inline-block text-3xl font-black text-white sm:text-5xl"
@@ -35,7 +37,8 @@ export default function NeedHelp() {
             {contact.email}
           </a>
           <p className="mx-auto mt-5 max-w-lg text-base font-semibold leading-7 text-white/72">
-            Questions? Need a custom route? Call us anytime.
+            Questions about Keflavík Airport taxi transfers, Reykjavík rides,
+            or a custom route? Call us anytime.
           </p>
         </div>
       </div>

@@ -21,6 +21,21 @@ export default function Footer() {
             </p>
           </div>
           <div className="grid gap-2 text-sm font-bold text-white/72 md:text-right">
+            <a href={links.home} className="hover:text-white">
+              Iceland Taxi Home
+            </a>
+            <a href={links.airport} className="hover:text-white">
+              Keflavík Airport Taxi
+            </a>
+            <a href={links.tours} className="hover:text-white">
+              Private Taxi Tours
+            </a>
+            <a href={links.offers} className="hover:text-white">
+              Summer Offers
+            </a>
+            <a href={links.book} className="hover:text-white">
+              Book Private Taxi Iceland
+            </a>
             <a href={links.privacy} className="hover:text-white">
               Privacy Policy
             </a>

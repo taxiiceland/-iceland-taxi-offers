@@ -29,7 +29,7 @@ export default function TrustBadges() {
       <div className="section-shell">
         <SectionHeading
           eyebrow="Trust"
-          title="Everything Clear Before Pickup"
+          title="Trusted Private Taxi Iceland Service"
           align="center"
         />
 

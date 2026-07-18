@@ -10,8 +10,8 @@ export default function TourCards() {
       <div className="section-shell">
         <SectionHeading
           eyebrow="Iceland private tours"
-          title="Private Tours, Simply Booked"
-          copy="Choose the trip. Select a time. Pay after your ride."
+          title="Private Taxi Tours Across Iceland"
+          copy="Choose a Golden Circle taxi, South Coast private tour, Blue Lagoon taxi, or custom trip. Select a time and pay after your ride."
         />
 
         <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">

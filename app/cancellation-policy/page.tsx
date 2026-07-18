@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
-import { absoluteUrl } from "@/lib/seo";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Cancellation Policy | Iceland Taxi Offers",
+export const metadata: Metadata = createPageMetadata({
+  title: "Cancellation Policy | Iceland Taxi Offers Airport Taxi",
   description:
-    "Cancellation policy for Iceland Taxi Offers airport transfers, taxi rides, and private tours.",
-  alternates: {
-    canonical: absoluteUrl("/cancellation-policy")
-  },
-  openGraph: {
-    url: absoluteUrl("/cancellation-policy")
-  }
-};
+    "Cancellation information for Iceland Taxi Offers airport transfers, Reykjavík taxi bookings, private Iceland taxi rides, and private tours.",
+  path: "/cancellation-policy"
+});
 
 export default function CancellationPolicyPage() {
   return (

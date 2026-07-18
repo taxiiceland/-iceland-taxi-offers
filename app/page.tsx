@@ -12,19 +12,14 @@ import TourGallery from "@/components/TourGallery";
 import TourCards from "@/components/TourCards";
 import TrustBadges from "@/components/TrustBadges";
 import WhyChooseUs from "@/components/WhyChooseUs";
-import { absoluteUrl } from "@/lib/seo";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Private Taxi Iceland | Airport Transfers & Private Tours",
+export const metadata: Metadata = createPageMetadata({
+  title: "Iceland Taxi | Keflavík Airport Transfers & Private Tours",
   description:
-    "Book a licensed Icelandic taxi driver for Keflavík Airport transfers, Reykjavík rides, Golden Circle trips, South Coast tours, and custom private taxi journeys.",
-  alternates: {
-    canonical: absoluteUrl("/")
-  },
-  openGraph: {
-    url: absoluteUrl("/")
-  }
-};
+    "Book Iceland Taxi Offers for Keflavík Airport taxi transfers, Reykjavík rides, Blue Lagoon taxi trips, Golden Circle tours, and private taxi service in Iceland.",
+  path: "/"
+});
 
 export default function Home() {
   return (

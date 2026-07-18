@@ -10,8 +10,8 @@ export default function AirportTransferCards() {
       <div className="section-shell">
         <SectionHeading
           eyebrow="Airport transfer Iceland"
-          title="Book the Route Tourists Need First"
-          copy="Clear, simple Keflavík airport transfer cards. Choose your route and the booking form fills it in for you."
+          title="Keflavík Airport Taxi & Transfers"
+          copy="Choose a fixed airport transfer route for Keflavík Airport, Reykjavík, or Blue Lagoon and the booking form fills it in for you."
         />
 
         <div className="mt-8 grid gap-5 lg:grid-cols-3">

@@ -3,21 +3,16 @@ import BookingForm from "@/components/BookingForm";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { telLink, whatsappLink } from "@/lib/contact-links";
-import { absoluteUrl } from "@/lib/seo";
+import { createPageMetadata } from "@/lib/seo";
 import { contact } from "@/lib/site-data";
 import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Contact | Iceland Taxi Offers",
+export const metadata: Metadata = createPageMetadata({
+  title: "Contact Iceland Taxi Offers | Reykjavík Taxi & Airport Transfer",
   description:
-    "Contact Iceland Taxi Offers for Keflavík airport transfers, Reykjavík rides, and private taxi tours in Iceland.",
-  alternates: {
-    canonical: absoluteUrl("/contact")
-  },
-  openGraph: {
-    url: absoluteUrl("/contact")
-  }
-};
+    "Contact Iceland Taxi Offers for Reykjavík taxi service, Keflavík Airport transfers, Blue Lagoon taxi rides, and private taxi tours across Iceland.",
+  path: "/contact"
+});
 
 const contactCards = [
   {
@@ -52,8 +47,8 @@ export default function ContactPage() {
               Contact Iceland Taxi Offers
             </h1>
             <p className="mt-5 text-lg font-semibold leading-8 text-slate-600">
-              Book a private airport transfer, Reykjavík ride, or private tour
-              around Iceland.
+              Contact a licensed Reykjavík taxi driver for Keflavík Airport
+              transfers, Blue Lagoon taxi rides, or private tours around Iceland.
             </p>
           </div>
 
@@ -84,7 +79,9 @@ export default function ContactPage() {
                   <Clock className="h-6 w-6" aria-hidden="true" />
                 </span>
                 <div>
-                  <h2 className="text-2xl font-black">Business Hours</h2>
+                  <h2 className="text-2xl font-black">
+                    Iceland Taxi Booking Hours
+                  </h2>
                   <p className="mt-2 text-base font-semibold leading-7 text-slate-600">
                     Online booking is open 24/7. Airport transfers, private rides,
                     and tours are available by reservation and driver availability.
@@ -96,7 +93,9 @@ export default function ContactPage() {
                   <MapPin className="h-6 w-6" aria-hidden="true" />
                 </span>
                 <div>
-                  <h2 className="text-2xl font-black">Service Area</h2>
+                  <h2 className="text-2xl font-black">
+                    Iceland Taxi Service Area
+                  </h2>
                   <p className="mt-2 text-base font-semibold leading-7 text-slate-600">
                     {contact.serviceArea}
                   </p>

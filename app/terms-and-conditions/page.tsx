@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
-import { absoluteUrl } from "@/lib/seo";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Terms & Conditions | Iceland Taxi Offers",
+export const metadata: Metadata = createPageMetadata({
+  title: "Terms & Conditions | Iceland Taxi Offers Private Taxi",
   description:
-    "Terms and conditions for Iceland Taxi Offers airport transfers, taxi rides, and private tours.",
-  alternates: {
-    canonical: absoluteUrl("/terms-and-conditions")
-  },
-  openGraph: {
-    url: absoluteUrl("/terms-and-conditions")
-  }
-};
+    "Terms for Iceland Taxi Offers private taxi rides, Keflavík Airport transfers, Reykjavík taxi service, Blue Lagoon trips, and Iceland private tours.",
+  path: "/terms-and-conditions"
+});
 
 export default function TermsAndConditionsPage() {
   return (

@@ -28,7 +28,7 @@ export default function Hero() {
     >
       <img
         src={images.hero}
-        alt="Private taxi transfer on an Iceland road"
+        alt="Licensed private taxi on an Iceland road for Keflavík Airport transfers and tours"
         className="absolute inset-0 h-full w-full object-cover"
       />
       <div className="absolute inset-0 bg-gradient-to-r from-black/88 via-midnight/74 to-black/38" />
@@ -44,7 +44,7 @@ export default function Hero() {
             <span>🚖 Save up to 20% on Airport Transfers</span>
             <span>🌍 Save up to 25% on Selected Tours</span>
           </div>
-          <p className="eyebrow">Private taxi Iceland</p>
+          <p className="eyebrow">Private Taxi Iceland</p>
           <h1 className="mt-5 text-5xl font-black uppercase leading-[0.96] tracking-normal text-white drop-shadow-[0_8px_26px_rgba(0,0,0,0.72)] sm:text-6xl lg:text-7xl">
             Private Taxi & Airport Transfers in Iceland
           </h1>

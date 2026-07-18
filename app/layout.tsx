@@ -1,31 +1,95 @@
 import type { Metadata } from "next";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import { absoluteUrl, siteUrl } from "@/lib/seo";
+import {
+  absoluteUrl,
+  defaultSeoDescription,
+  defaultSeoImage,
+  defaultSeoTitle,
+  siteUrl
+} from "@/lib/seo";
 import { contact, images } from "@/lib/site-data";
 import "./globals.css";
 
 const structuredData = {
   "@context": "https://schema.org",
-  "@type": "TaxiService",
-  name: contact.businessName,
-  url: siteUrl,
-  telephone: contact.phone,
-  email: contact.email,
-  areaServed: contact.serviceArea,
-  paymentAccepted: "Cash, credit card",
-  priceRange: "ISK"
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": absoluteUrl("/#organization"),
+      name: contact.businessName,
+      url: siteUrl,
+      email: contact.email,
+      telephone: contact.phone,
+      image: images.hero
+    },
+    {
+      "@type": "LocalBusiness",
+      "@id": absoluteUrl("/#local-business"),
+      name: contact.businessName,
+      url: siteUrl,
+      email: contact.email,
+      telephone: contact.phone,
+      image: images.hero,
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Reykjavík",
+        addressCountry: "IS"
+      },
+      areaServed: [
+        { "@type": "Place", name: "Keflavík Airport" },
+        { "@type": "Place", name: "Reykjavík" },
+        { "@type": "Place", name: "Blue Lagoon" },
+        { "@type": "Country", name: "Iceland" }
+      ],
+      paymentAccepted: "Cash, card payment terminal",
+      priceRange: "ISK"
+    },
+    {
+      "@type": "TaxiService",
+      "@id": absoluteUrl("/#taxi-service"),
+      name: `${contact.businessName} Taxi Service`,
+      serviceType: [
+        "Iceland Taxi",
+        "Keflavík Airport Taxi",
+        "Airport Transfer Iceland",
+        "Reykjavík Taxi",
+        "Blue Lagoon Taxi",
+        "Golden Circle Taxi",
+        "Private Taxi Iceland"
+      ],
+      provider: { "@id": absoluteUrl("/#local-business") },
+      url: siteUrl,
+      areaServed: contact.serviceArea,
+      offers: [
+        { "@type": "Offer", name: "Keflavík Airport taxi transfers" },
+        { "@type": "Offer", name: "Reykjavík taxi rides" },
+        { "@type": "Offer", name: "Blue Lagoon taxi transfers" },
+        { "@type": "Offer", name: "Golden Circle private taxi tours" },
+        { "@type": "Offer", name: "South Coast private tours" }
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": absoluteUrl("/#website"),
+      name: contact.businessName,
+      url: siteUrl,
+      description: defaultSeoDescription,
+      publisher: { "@id": absoluteUrl("/#organization") },
+      inLanguage: "en"
+    }
+  ]
 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Private Taxi Iceland | Airport Transfers & Private Tours",
+    default: defaultSeoTitle,
     template: "%s | Iceland Taxi Offers"
   },
-  description:
-    "Book a licensed Icelandic taxi driver for Keflavík Airport transfers, Reykjavík rides, Golden Circle trips, South Coast tours, and custom private taxi journeys.",
+  description: defaultSeoDescription,
   keywords: [
     "Iceland taxi",
+    "Taxi Iceland",
     "Iceland private taxi",
     "Private taxi Iceland",
     "Keflavík airport taxi",
@@ -45,27 +109,19 @@ export const metadata: Metadata = {
     canonical: absoluteUrl("/")
   },
   openGraph: {
-    title: "Private Taxi Iceland | Airport Transfers & Private Tours",
-    description:
-      "Book Iceland Taxi Offers for Keflavík airport transfers, Reykjavík rides, Blue Lagoon taxi service, and private tours across Iceland.",
+    title: defaultSeoTitle,
+    description: defaultSeoDescription,
     url: absoluteUrl("/"),
     siteName: contact.businessName,
     type: "website",
     locale: "en_US",
-    images: [
-      {
-        url: images.hero,
-        width: 1200,
-        height: 630,
-        alt: "Iceland Taxi Offers private taxi and airport transfers"
-      }
-    ]
+    images: [defaultSeoImage]
   },
   twitter: {
     card: "summary_large_image",
-    title: "Private Taxi Iceland | Airport Transfers & Private Tours",
-    description:
-      "Book a licensed Icelandic taxi driver for airport transfers and private Iceland tours."
+    title: defaultSeoTitle,
+    description: defaultSeoDescription,
+    images: [defaultSeoImage.url]
   }
 };
 

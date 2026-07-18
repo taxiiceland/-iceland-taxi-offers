@@ -5,6 +5,9 @@ export default function TourGallery() {
   return (
     <section className="bg-ice py-16 sm:py-20">
       <div className="section-shell">
+        <h2 className="sr-only">
+          Iceland private taxi destinations and tour gallery
+        </h2>
         <div className="grid gap-5 lg:grid-cols-2">
           {tourCards.slice(0, 5).map((tour) => (
             <article
