@@ -1,6 +1,7 @@
 "use client";
 
 import { getAvailableSlots } from "@/lib/availability";
+import { trackBookingCompleted } from "@/lib/analytics";
 import {
   createBookingNotification,
   type BookingNotification,
@@ -239,6 +240,7 @@ export default function BookingForm() {
 
       setConfirmation(result.notification);
       setSubmitted(true);
+      trackBookingCompleted(result.notification, form);
       setForm(initialForm);
       setAvailableSlots([]);
     } catch {
