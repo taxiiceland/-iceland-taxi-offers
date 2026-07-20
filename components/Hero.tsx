@@ -28,12 +28,22 @@ export default function Hero() {
             🚖 Iceland Taxi Offers
           </p>
 
-          <div className="mx-auto mt-4 grid max-w-2xl gap-2 sm:grid-cols-2">
-            <div className="rounded-full border border-gold/35 bg-midnight/72 px-4 py-2 text-sm font-black text-white shadow-glow backdrop-blur">
-              20% OFF Airport Transfers
+          <div className="mx-auto mt-4 grid max-w-2xl gap-3 sm:grid-cols-2">
+            <div className="relative min-h-14 rounded-2xl border border-red-200 bg-white/95 py-2 pl-4 pr-16 text-left text-sm font-black text-red-700 shadow-glow backdrop-blur">
+              <span className="flex min-h-10 items-center leading-tight">
+                20% OFF Airport Transfers
+              </span>
+              <span className="absolute right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-red-600 text-[0.56rem] font-black leading-none text-white shadow-[0_8px_18px_rgba(220,38,38,0.35)]">
+                LIMITED
+              </span>
             </div>
-            <div className="rounded-full border border-gold/35 bg-midnight/72 px-4 py-2 text-sm font-black text-white shadow-glow backdrop-blur">
-              25% OFF Private Tours
+            <div className="relative min-h-14 rounded-2xl border border-red-200 bg-white/95 py-2 pl-4 pr-16 text-left text-sm font-black text-red-700 shadow-glow backdrop-blur">
+              <span className="flex min-h-10 items-center leading-tight">
+                25% OFF Private Tours
+              </span>
+              <span className="absolute right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-red-600 text-[0.56rem] font-black leading-none text-white shadow-[0_8px_18px_rgba(220,38,38,0.35)]">
+                LIMITED
+              </span>
             </div>
           </div>
 
