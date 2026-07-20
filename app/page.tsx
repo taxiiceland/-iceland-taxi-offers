@@ -26,11 +26,11 @@ export default function Home() {
     <main className="min-h-screen bg-ice pb-20 text-midnight md:pb-0">
       <Header />
       <Hero />
+      <BookingForm variant="quick" />
       <DiscountBanner />
       <AirportTransferCards />
       <TourCards />
       <TourGallery />
-      <BookingForm />
       <TrustBadges />
       <WhyChooseUs />
       <FAQ />
