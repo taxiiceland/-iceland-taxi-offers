@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import BookingForm from "@/components/BookingForm";
+import ContactActionLink from "@/components/ContactActionLink";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { telLink, whatsappLink } from "@/lib/contact-links";
@@ -19,19 +20,22 @@ const contactCards = [
     label: "Phone Number",
     value: contact.phone,
     href: telLink(),
-    icon: Phone
+    icon: Phone,
+    action: "call" as const
   },
   {
     label: "Email",
     value: contact.email,
     href: `mailto:${contact.email}`,
-    icon: Mail
+    icon: Mail,
+    action: null
   },
   {
     label: "WhatsApp",
     value: contact.whatsapp,
     href: whatsappLink(),
-    icon: MessageCircle
+    icon: MessageCircle,
+    action: "whatsapp" as const
   }
 ];
 
@@ -53,29 +57,45 @@ export default function ContactPage() {
           </div>
 
           <div className="mt-8 grid gap-5 md:grid-cols-3">
-            {contactCards.map(({ label, value, href, icon: Icon }) => (
-              <a
-                key={label}
-                href={href}
-                className="rounded-2xl bg-white p-5 shadow-soft ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-glow"
-              >
-                <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-midnight text-gold">
-                  <Icon className="h-6 w-6" aria-hidden="true" />
-                </span>
-                <span className="mt-5 block text-sm font-black uppercase tracking-[0.12em] text-slate-500">
-                  {label}
-                </span>
-                <span className="mt-2 block text-lg font-black text-midnight">
-                  {value}
-                </span>
-              </a>
-            ))}
+            {contactCards.map(({ label, value, href, icon: Icon, action }) => {
+              const content = (
+                <>
+                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-midnight text-gold">
+                    <Icon className="h-6 w-6" aria-hidden="true" />
+                  </span>
+                  <span className="mt-5 block text-sm font-black uppercase tracking-[0.12em] text-slate-500">
+                    {label}
+                  </span>
+                  <span className="mt-2 block text-lg font-black text-midnight">
+                    {value}
+                  </span>
+                </>
+              );
+              const className =
+                "rounded-2xl bg-white p-5 shadow-soft ring-1 ring-slate-100 transition hover:-translate-y-0.5 hover:shadow-glow";
+
+              return action ? (
+                <ContactActionLink
+                  key={label}
+                  action={action}
+                  placement="contact_card"
+                  href={href}
+                  className={className}
+                >
+                  {content}
+                </ContactActionLink>
+              ) : (
+                <a key={label} href={href} className={className}>
+                  {content}
+                </a>
+              );
+            })}
           </div>
 
           <div className="mt-5 rounded-2xl bg-white p-5 shadow-soft ring-1 ring-slate-100">
             <div className="grid gap-5 md:grid-cols-2">
               <div className="flex items-start gap-4">
-                <span className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-gold/18 text-midnight">
+                <span className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-gold/[0.18] text-midnight">
                   <Clock className="h-6 w-6" aria-hidden="true" />
                 </span>
                 <div>
@@ -89,7 +109,7 @@ export default function ContactPage() {
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <span className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-gold/18 text-midnight">
+                <span className="flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-gold/[0.18] text-midnight">
                   <MapPin className="h-6 w-6" aria-hidden="true" />
                 </span>
                 <div>

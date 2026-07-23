@@ -4,7 +4,7 @@ export default function DiscountBanner() {
   return (
     <section id="offers" className="-mt-10 bg-transparent pb-8">
       <div className="section-shell relative z-10">
-        <div className="overflow-hidden rounded-2xl border border-gold/30 bg-white shadow-glow">
+        <div className="overflow-hidden rounded-2xl border border-gold/[0.30] bg-white shadow-glow">
           <div className="grid gap-0 md:grid-cols-[0.8fr_1fr_1fr]">
             <div className="bg-midnight p-6 text-white sm:p-8">
               <div className="flex items-center gap-3">

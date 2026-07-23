@@ -32,7 +32,7 @@ export default async function AdminPage() {
 
     return (
       <main className="min-h-screen bg-slate-950 px-4 py-10 text-white">
-        <div className="mx-auto max-w-2xl rounded-2xl border border-red-400/30 bg-red-500/12 p-6">
+        <div className="mx-auto max-w-2xl rounded-2xl border border-red-400/30 bg-red-500/[0.12] p-6">
           <p className="text-sm font-black uppercase tracking-[0.16em] text-red-200">
             Admin setup needed
           </p>

@@ -574,7 +574,7 @@ export default function AdminDashboard({
               View bookings and update trip status.
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/8 px-5 py-4">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.08] px-5 py-4">
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-white/50">
               Total bookings
             </p>
@@ -582,7 +582,7 @@ export default function AdminDashboard({
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 rounded-2xl border border-white/10 bg-white/8 p-4 md:grid-cols-[1fr_260px]">
+        <div className="mt-6 grid gap-3 rounded-2xl border border-white/10 bg-white/[0.08] p-4 md:grid-cols-[1fr_260px]">
           <label className="grid gap-2 text-sm font-bold text-white/80">
             Search by name, phone, or email
             <input
@@ -611,7 +611,7 @@ export default function AdminDashboard({
           </label>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 rounded-2xl border border-white/10 bg-white/8 p-1 sm:w-fit">
+        <div className="mt-4 grid grid-cols-3 rounded-2xl border border-white/10 bg-white/[0.08] p-1 sm:w-fit">
           {(["list", "calendar", "statistics"] as AdminView[]).map((view) => (
             <button
               key={view}
@@ -633,7 +633,7 @@ export default function AdminDashboard({
         </div>
 
         {error ? (
-          <div className="mt-4 rounded-2xl border border-red-400/30 bg-red-500/12 p-4 text-sm font-bold text-red-100">
+          <div className="mt-4 rounded-2xl border border-red-400/30 bg-red-500/[0.12] p-4 text-sm font-bold text-red-100">
             {error}
           </div>
         ) : null}
@@ -721,7 +721,7 @@ function StatisticsView({ statistics }: { statistics: StatisticsData }) {
         />
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/8 p-4 sm:p-5">
+      <section className="rounded-2xl border border-white/10 bg-white/[0.08] p-4 sm:p-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.14em] text-gold">
@@ -818,7 +818,7 @@ function RevenueStatisticsCard({
 
 function RevenueLine({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl bg-white/35 px-3 py-2">
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.35] px-3 py-2">
       <span className="text-xs font-black uppercase tracking-[0.08em]">
         {label}
       </span>
@@ -837,7 +837,7 @@ function InsightCard({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/8 p-4 sm:p-5">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.08] p-4 sm:p-5">
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs font-black uppercase tracking-[0.14em] text-gold">
           {label}
@@ -931,7 +931,7 @@ function ListView({
           />
         ))
       ) : (
-        <div className="rounded-2xl border border-white/10 bg-white/8 p-8 text-center text-sm font-bold text-white/70">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.08] p-8 text-center text-sm font-bold text-white/70">
           No bookings match the current search or filter.
         </div>
       )}
@@ -974,7 +974,7 @@ function CalendarView({
 
   return (
     <div className="mt-6 grid gap-6">
-      <section className="rounded-2xl border border-white/10 bg-white/8 p-4 sm:p-5">
+      <section className="rounded-2xl border border-white/10 bg-white/[0.08] p-4 sm:p-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.14em] text-gold">
@@ -1003,7 +1003,7 @@ function CalendarView({
               />
             ))
           ) : (
-            <p className="rounded-xl bg-white/8 p-4 text-sm font-bold text-white/70">
+            <p className="rounded-xl bg-white/[0.08] p-4 text-sm font-bold text-white/70">
               No bookings.
             </p>
           )}
@@ -1051,7 +1051,7 @@ function CalendarView({
                 onClick={() => setSelectedDate(dateKey)}
                 className={`relative min-h-16 rounded-xl border p-1.5 text-left transition sm:min-h-24 sm:p-3 ${
                   isSelected
-                    ? "border-gold bg-gold/16 shadow-[0_0_0_3px_rgba(214,168,79,0.16)]"
+                    ? "border-gold bg-gold/[0.16] shadow-[0_0_0_3px_rgba(214,168,79,0.16)]"
                     : "border-slate-100 bg-white hover:border-gold/70"
                 } ${inCurrentMonth ? "text-slate-950" : "text-slate-300"}`}
               >
@@ -1073,7 +1073,7 @@ function CalendarView({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-white/8 p-4 sm:p-5">
+      <section className="rounded-2xl border border-white/10 bg-white/[0.08] p-4 sm:p-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.14em] text-gold">
@@ -1100,7 +1100,7 @@ function CalendarView({
               />
             ))
           ) : (
-            <p className="rounded-xl bg-white/8 p-4 text-sm font-bold text-white/70">
+            <p className="rounded-xl bg-white/[0.08] p-4 text-sm font-bold text-white/70">
               No bookings.
             </p>
           )}

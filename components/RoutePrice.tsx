@@ -39,7 +39,7 @@ export default function RoutePrice({ price, compact = false }: RoutePriceProps) 
       <div className="flex justify-center text-gold" aria-hidden="true">
         ↓
       </div>
-      <div className="flex items-center justify-between gap-4 rounded-lg bg-gold/14 px-3 py-2">
+      <div className="flex items-center justify-between gap-4 rounded-lg bg-gold/[0.14] px-3 py-2">
         <span className="font-semibold text-slate-600">Summer Price</span>
         <span className="font-extrabold text-midnight">
           {formatPrice(discountedPrice, price.currency)}

@@ -27,7 +27,7 @@ export default function TourCards() {
                   loading="lazy"
                   className="absolute inset-0 h-full w-full object-cover transition duration-500 hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/76 via-black/12 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/[0.76] via-black/[0.12] to-transparent" />
                 <div className="absolute left-4 top-4 rounded-full bg-gold px-3 py-1 text-xs font-black text-midnight">
                   {tour.price.category === "custom"
                     ? "Custom quote"
@@ -35,7 +35,7 @@ export default function TourCards() {
                 </div>
                 <div className="absolute bottom-4 left-4 right-4">
                   <h3 className="text-2xl font-black text-white">{tour.title}</h3>
-                  <p className="mt-2 text-sm font-semibold leading-6 text-white/82">
+                  <p className="mt-2 text-sm font-semibold leading-6 text-white/[0.82]">
                     {tour.description}
                   </p>
                 </div>

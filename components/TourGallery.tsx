@@ -20,14 +20,14 @@ export default function TourGallery() {
                 loading="lazy"
                 className="absolute inset-0 h-full w-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/[0.82] via-black/[0.20] to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5 text-white sm:p-6">
                 <h3 className="text-2xl font-black">{tour.title}</h3>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {tour.gallery.map((item) => (
                     <span
                       key={item}
-                      className="rounded-full bg-white/14 px-3 py-1.5 text-xs font-bold backdrop-blur"
+                      className="rounded-full bg-white/[0.14] px-3 py-1.5 text-xs font-bold backdrop-blur"
                     >
                       {item}
                     </span>

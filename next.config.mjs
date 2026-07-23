@@ -1,16 +1,25 @@
+const isStaticExport = process.env.STATIC_EXPORT === "1";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   env: {
-    NEXT_PUBLIC_STATIC_EXPORT: process.env.STATIC_EXPORT === "1" ? "1" : "0"
+    NEXT_PUBLIC_STATIC_EXPORT: isStaticExport ? "1" : "0"
   },
-  ...(process.env.STATIC_EXPORT === "1"
+  images: {
+    qualities: [82],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com"
+      }
+    ],
+    ...(isStaticExport ? { unoptimized: true } : {})
+  },
+  ...(isStaticExport
     ? {
         output: "export",
-        assetPrefix: ".",
-        images: {
-          unoptimized: true
-        }
+        assetPrefix: "."
       }
     : {})
 };

@@ -74,3 +74,28 @@ export function trackBookingCompleted(
     currency: value ? "ISK" : undefined
   });
 }
+
+function trackInteraction(eventName: string, placement: string) {
+  const gtag = ensureGtag();
+
+  if (!gtag) {
+    return;
+  }
+
+  gtag("event", eventName, {
+    event_category: "lead",
+    event_label: placement
+  });
+}
+
+export function trackCallClicked(placement: string) {
+  trackInteraction("call_clicked", placement);
+}
+
+export function trackWhatsappClicked(placement: string) {
+  trackInteraction("whatsapp_clicked", placement);
+}
+
+export function trackBookingFormStarted(placement = "homepage_quick_booking") {
+  trackInteraction("booking_form_started", placement);
+}

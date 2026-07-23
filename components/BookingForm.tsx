@@ -1,7 +1,10 @@
 "use client";
 
 import { getAvailableSlots } from "@/lib/availability";
-import { trackBookingCompleted } from "@/lib/analytics";
+import {
+  trackBookingCompleted,
+  trackBookingFormStarted
+} from "@/lib/analytics";
 import {
   createBookingNotification,
   type BookingNotification,
@@ -9,7 +12,8 @@ import {
 } from "@/lib/booking";
 import { contact } from "@/lib/site-data";
 import { CheckCircle2, Clock, Phone, Send } from "lucide-react";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import ContactActionLink from "./ContactActionLink";
 import SectionHeading from "./SectionHeading";
 
 type BookingFormState = BookingRequest;
@@ -76,6 +80,7 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
   const [error, setError] = useState("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const quickFormStartedTracked = useRef(false);
 
   useEffect(() => {
     function handleRouteSelected(event: Event) {
@@ -113,6 +118,15 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
       [name]: value,
       ...(name === "date" ? { time: "" } : {})
     }));
+  }
+
+  function handleQuickFormStarted() {
+    if (!isQuick || quickFormStartedTracked.current) {
+      return;
+    }
+
+    quickFormStartedTracked.current = true;
+    trackBookingFormStarted();
   }
 
   const selectedRoute = form.selectedRouteId
@@ -190,6 +204,26 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
       suitcases: form.suitcases || "0"
     };
 
+    if (!bookingPayload.pickup.trim()) {
+      setError("Please add your pickup location.");
+      return;
+    }
+
+    if (!bookingPayload.dropoff.trim()) {
+      setError("Please add your destination.");
+      return;
+    }
+
+    if (!bookingPayload.date) {
+      setError("Please choose a date.");
+      return;
+    }
+
+    if (!bookingPayload.time) {
+      setError("Please select an available time.");
+      return;
+    }
+
     if (isQuick && !bookingPayload.phone.trim()) {
       setError("Please add your phone number.");
       return;
@@ -210,16 +244,6 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
 
     if (suitcases < 0 || suitcases > 5) {
       setError("Please choose 0 to 5 standard suitcases.");
-      return;
-    }
-
-    if (!bookingPayload.pickup.trim() || !bookingPayload.dropoff.trim()) {
-      setError("Please add pickup location and destination.");
-      return;
-    }
-
-    if (!bookingPayload.date || !bookingPayload.time) {
-      setError("Please select an available time.");
       return;
     }
 
@@ -272,7 +296,7 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
   return (
     <section
       id="book-now"
-      className={isQuick ? "bg-ice pb-16 pt-3 sm:pb-20 sm:pt-5" : "bg-ice py-16 sm:py-20"}
+      className={isQuick ? "bg-ice pb-28 pt-2 sm:pb-20 sm:pt-5" : "bg-ice py-16 sm:py-20"}
     >
       <div className="section-shell">
         <div
@@ -292,17 +316,19 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
 
               <div className="mt-6 rounded-2xl bg-midnight p-5 text-white shadow-soft">
                 <p className="text-2xl font-black">No online payment.</p>
-                <p className="mt-2 text-sm leading-6 text-glacier/80">
+                <p className="mt-2 text-sm leading-6 text-glacier/[0.80]">
                   No online payment is required. Payment is made after your ride
                   using our card payment terminal or by cash.
                 </p>
-                <a
+                <ContactActionLink
+                  action="call"
+                  placement="booking_full_notice"
                   href={`tel:${contact.phone.replaceAll(" ", "")}`}
                   className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-full bg-gold px-5 text-sm font-black text-midnight"
                 >
                   <Phone className="h-4 w-4" aria-hidden="true" />
                   Call {contact.phone}
-                </a>
+                </ContactActionLink>
               </div>
             </div>
           ) : null}
@@ -310,7 +336,7 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
           <div
             className={
               isQuick
-                ? "rounded-2xl bg-white p-4 shadow-soft ring-1 ring-slate-100 sm:p-5"
+                ? "rounded-2xl bg-white p-3 shadow-soft ring-1 ring-slate-100 sm:p-5"
                 : "rounded-2xl bg-white p-5 shadow-soft ring-1 ring-slate-100 sm:p-7"
             }
           >
@@ -335,39 +361,43 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
                   you as soon as possible using the phone or email you provided.
                 </p>
                 {confirmation ? (
-                  <div className="mt-5 rounded-xl bg-white/70 p-4 text-sm font-semibold leading-6 text-emerald-950">
+                  <div className="mt-5 rounded-xl bg-white/[0.70] p-4 text-sm font-semibold leading-6 text-emerald-950">
                     <p>Reserved: {confirmation.selectedRoute}</p>
                     <p>
                       Time blocked: {confirmation.blockedTime}
                     </p>
                   </div>
                 ) : null}
-                <a
+                <ContactActionLink
+                  action="call"
+                  placement="booking_success"
                   href={`tel:${contact.phone.replaceAll(" ", "")}`}
                   className="mt-5 inline-flex min-h-12 items-center rounded-full bg-midnight px-5 text-sm font-black text-white"
                 >
                   Need urgent help? Call {contact.phone}
-                </a>
+                </ContactActionLink>
               </div>
             ) : (
               <form
                 onSubmit={handleSubmit}
-                className={isQuick ? "grid gap-3" : "grid gap-4"}
+                onFocusCapture={handleQuickFormStarted}
+                onPointerDownCapture={handleQuickFormStarted}
+                className={isQuick ? "grid gap-2.5" : "grid gap-4"}
                 noValidate
               >
                 {isQuick ? (
-                  <div className="grid gap-1 border-b border-slate-100 pb-3">
-                    <h2 className="text-2xl font-black text-midnight">
+                  <div className="grid gap-0.5 border-b border-slate-100 pb-2">
+                    <h2 className="text-xl font-black text-midnight sm:text-2xl">
                       Book Your Taxi
                     </h2>
-                    <p className="text-sm font-semibold leading-6 text-slate-600">
+                    <p className="text-xs font-semibold leading-5 text-slate-600 max-[380px]:hidden sm:text-sm sm:leading-6">
                       Pickup, destination, date and phone number.
                     </p>
                   </div>
                 ) : null}
 
                 {form.selectedRoute ? (
-                  <div className="rounded-xl bg-gold/14 p-4">
+                  <div className="rounded-xl bg-gold/[0.14] p-3 sm:p-4">
                     <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
                       Selected offer
                     </p>
@@ -378,7 +408,7 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
                 ) : null}
 
                 {error ? (
-                  <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-950">
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm font-semibold leading-6 text-amber-950 sm:p-4">
                     {error}
                   </p>
                 ) : null}
@@ -396,11 +426,11 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
 
                 {isQuick ? (
                   <>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="grid gap-2 text-base font-black text-midnight">
+                    <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
+                      <label className="grid gap-1 text-sm font-black text-midnight sm:gap-2 sm:text-base">
                         Pickup location
                         <input
-                          className="field min-h-14 text-base"
+                          className="field min-h-12 text-base sm:min-h-14"
                           name="pickup"
                           value={form.pickup}
                           onChange={updateField}
@@ -408,10 +438,10 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
                           required
                         />
                       </label>
-                      <label className="grid gap-2 text-base font-black text-midnight">
+                      <label className="grid gap-1 text-sm font-black text-midnight sm:gap-2 sm:text-base">
                         Destination
                         <input
-                          className="field min-h-14 text-base"
+                          className="field min-h-12 text-base sm:min-h-14"
                           name="dropoff"
                           value={form.dropoff}
                           onChange={updateField}
@@ -421,11 +451,11 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
                       </label>
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1.05fr]">
-                      <label className="grid gap-2 text-base font-black text-midnight">
+                    <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1.05fr] sm:gap-3">
+                      <label className="grid gap-1 text-sm font-black text-midnight sm:gap-2 sm:text-base">
                         Date
                         <input
-                          className="field min-h-14 text-base"
+                          className="field min-h-12 text-base sm:min-h-14"
                           name="date"
                           value={form.date}
                           onChange={updateField}
@@ -434,10 +464,10 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
                           required
                         />
                       </label>
-                      <label className="grid gap-2 text-base font-black text-midnight">
+                      <label className="grid gap-1 text-sm font-black text-midnight sm:gap-2 sm:text-base">
                         Time
                         <select
-                          className="field min-h-14 text-base"
+                          className="field min-h-12 text-base sm:min-h-14"
                           name="time"
                           value={form.time}
                           onChange={updateField}
@@ -462,10 +492,10 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
                           ))}
                         </select>
                       </label>
-                      <label className="grid gap-2 text-base font-black text-midnight">
+                      <label className="grid gap-1 text-sm font-black text-midnight sm:gap-2 sm:text-base">
                         Phone Number
                         <input
-                          className="field min-h-14 text-base"
+                          className="field min-h-12 text-base sm:min-h-14"
                           name="phone"
                           value={form.phone}
                           onChange={updateField}
@@ -595,7 +625,7 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
                                       className={`min-h-11 rounded-full px-3 text-sm font-black transition ${
                                         form.time === slot
                                           ? "bg-midnight text-white shadow-glow"
-                                          : "bg-white text-midnight hover:bg-gold/18"
+                                          : "bg-white text-midnight hover:bg-gold/[0.18]"
                                       }`}
                                     >
                                       {slot}
@@ -677,7 +707,7 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
 
                 <button
                   type="submit"
-                  className="focus-ring inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-midnight px-7 text-sm font-black uppercase tracking-[0.08em] text-white shadow-glow transition hover:bg-navy"
+                  className={`${isQuick ? "min-h-12" : "min-h-14"} focus-ring inline-flex items-center justify-center gap-2 rounded-full bg-midnight px-7 text-sm font-black uppercase tracking-[0.08em] text-white shadow-glow transition hover:bg-navy`}
                 >
                   <Send className="h-4 w-4 text-gold" aria-hidden="true" />
                   Confirm Booking
