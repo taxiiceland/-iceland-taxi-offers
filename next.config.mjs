@@ -1,4 +1,5 @@
 const isStaticExport = process.env.STATIC_EXPORT === "1";
+const customDomain = "icelandtaxioffers.is";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -16,6 +17,25 @@ const nextConfig = {
     ],
     ...(isStaticExport ? { unoptimized: true } : {})
   },
+  ...(!isStaticExport
+    ? {
+        async redirects() {
+          return [
+            {
+              source: "/:path*",
+              has: [
+                {
+                  type: "host",
+                  value: `www.${customDomain}`
+                }
+              ],
+              destination: `https://${customDomain}/:path*`,
+              permanent: true
+            }
+          ];
+        }
+      }
+    : {}),
   ...(isStaticExport
     ? {
         output: "export",

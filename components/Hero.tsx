@@ -1,5 +1,8 @@
 import {
   ArrowRight,
+  BadgeCheck,
+  Clock3,
+  CreditCard,
   MessageCircle,
   Phone
 } from "lucide-react";
@@ -12,7 +15,7 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="relative isolate overflow-hidden bg-midnight pb-3 pt-16 text-white sm:pb-8 sm:pt-28"
+      className="relative isolate overflow-hidden bg-midnight pb-1 pt-16 text-white sm:pb-8 sm:pt-28"
     >
       <Image
         src={images.hero}
@@ -47,7 +50,7 @@ export default function Hero() {
             Call, message us on WhatsApp, or book below in seconds.
           </p>
 
-          <div className="mx-auto mt-4 grid max-w-xl grid-cols-2 gap-2 sm:flex sm:justify-center sm:gap-3">
+          <div className="mx-auto mt-3 grid max-w-xl grid-cols-2 gap-2 sm:mt-4 sm:flex sm:justify-center sm:gap-3">
             <ContactActionLink
               action="call"
               placement="hero"
@@ -75,11 +78,26 @@ export default function Hero() {
             </a>
           </div>
 
-          <p className="mx-auto mt-3 max-w-2xl text-xs font-black uppercase tracking-[0.12em] text-gold max-[380px]:hidden sm:text-sm">
+          <div className="mx-auto mt-1 flex max-w-xl flex-wrap justify-center gap-1 text-[0.62rem] font-black uppercase tracking-[0.05em] text-white sm:mt-3 sm:gap-2 sm:text-xs">
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.18] bg-black/[0.32] px-2 py-1 shadow-[0_8px_24px_rgba(0,0,0,0.2)] backdrop-blur sm:px-2.5 sm:py-1.5">
+              <BadgeCheck className="h-3 w-3 text-gold sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+              Pay After Ride
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.18] bg-black/[0.32] px-2 py-1 shadow-[0_8px_24px_rgba(0,0,0,0.2)] backdrop-blur sm:px-2.5 sm:py-1.5">
+              <CreditCard className="h-3 w-3 text-gold sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+              Card & Cash
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/[0.18] bg-black/[0.32] px-2 py-1 shadow-[0_8px_24px_rgba(0,0,0,0.2)] backdrop-blur sm:px-2.5 sm:py-1.5">
+              <Clock3 className="h-3 w-3 text-gold sm:h-3.5 sm:w-3.5" aria-hidden="true" />
+              24/7 Service
+            </span>
+          </div>
+
+          <p className="mx-auto mt-3 hidden max-w-2xl text-sm font-black uppercase tracking-[0.12em] text-gold sm:block">
             Book below — we usually confirm your booking within seconds.
           </p>
 
-          <div className="mx-auto mt-3 hidden max-w-2xl grid-cols-2 gap-2 px-5 min-[381px]:grid sm:mt-5 sm:gap-3 sm:px-0">
+          <div className="mx-auto mt-1.5 hidden max-w-2xl grid-cols-2 gap-2 px-5 min-[381px]:grid sm:mt-5 sm:gap-3 sm:px-0">
             <div className="relative min-h-12 rounded-2xl border border-red-200 bg-white/95 py-2 pl-3 pr-12 text-left text-[0.72rem] font-black text-red-700 shadow-glow backdrop-blur sm:min-h-14 sm:pl-4 sm:pr-16 sm:text-sm">
               <span className="flex min-h-8 items-center leading-tight sm:min-h-10">
                 20% OFF Airport Transfers

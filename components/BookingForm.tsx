@@ -390,7 +390,13 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
                     <h2 className="text-xl font-black text-midnight sm:text-2xl">
                       Book Your Taxi
                     </h2>
-                    <p className="text-xs font-semibold leading-5 text-slate-600 max-[380px]:hidden sm:text-sm sm:leading-6">
+                    <p className="mt-1 inline-flex w-fit rounded-full bg-midnight px-2.5 py-1 text-[0.68rem] font-black uppercase tracking-[0.04em] text-white sm:px-3 sm:py-1.5 sm:text-xs">
+                      KEF ↔ Reykjavík • Fixed fare • 18,000 ISK
+                    </p>
+                    <p className="text-[0.68rem] font-semibold leading-4 text-slate-600 sm:text-sm sm:leading-5">
+                      Airport pickup available with your name displayed.
+                    </p>
+                    <p className="hidden text-sm font-semibold leading-6 text-slate-600 sm:block">
                       Pickup, destination, date and phone number.
                     </p>
                   </div>

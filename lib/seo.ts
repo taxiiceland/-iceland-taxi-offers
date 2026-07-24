@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { contact, images } from "./site-data";
 
+export const intendedCustomDomain = "icelandtaxioffers.is";
+export const intendedCustomSiteUrl = `https://${intendedCustomDomain}`;
+export const currentTransitionSiteUrl =
+  "https://iceland-taxi-offers.vercel.app";
+
 export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://icelandtaxioffers.com";
+  currentTransitionSiteUrl;
 
 export function absoluteUrl(path = "/") {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;

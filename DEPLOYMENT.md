@@ -19,14 +19,14 @@ For local visual-only static preview, `STATIC_EXPORT=1 npm run build` still crea
 Add these in Vercel Project Settings > Environment Variables:
 
 ```bash
-NEXT_PUBLIC_SITE_URL=https://your-domain.com
+NEXT_PUBLIC_SITE_URL=https://icelandtaxioffers.is
 NEXT_PUBLIC_GA_ID=
 
 ADMIN_USERNAME=choose_admin_username
 ADMIN_PASSWORD=choose_strong_admin_password
 
 BOOKING_EMAIL_TO=icelandtaxioffers@gmail.com
-BOOKING_EMAIL_FROM=bookings@your-domain.com
+BOOKING_EMAIL_FROM=bookings@icelandtaxioffers.is
 RESEND_API_KEY=your_resend_api_key
 
 UPSTASH_REDIS_REST_URL=your_upstash_rest_url
@@ -41,7 +41,7 @@ UPSTASH_REDIS_REST_TOKEN=your_upstash_rest_token
 2. Verify the sending domain you will use for the website.
 3. Create an API key in Resend.
 4. Add `RESEND_API_KEY` to Vercel.
-5. Add `BOOKING_EMAIL_FROM`, for example `bookings@your-domain.com`.
+5. Add `BOOKING_EMAIL_FROM`, for example `bookings@icelandtaxioffers.is`.
 6. Keep `BOOKING_EMAIL_TO=icelandtaxioffers@gmail.com`.
 
 After this is configured, every reserved booking sends an email to `icelandtaxioffers@gmail.com`.
@@ -71,11 +71,15 @@ Use a strong password and keep it private.
 
 ## Custom Domain
 
-1. Buy or connect the domain in Vercel Project Settings > Domains.
-2. Follow Vercel's DNS instructions.
-3. Set `NEXT_PUBLIC_SITE_URL` to the final public URL.
-4. Redeploy the site.
-5. Submit `https://your-domain.com/sitemap.xml` in Google Search Console.
+Preferred public domain: `icelandtaxioffers.is`.
+
+1. Buy or connect `icelandtaxioffers.is` in Vercel Project Settings > Domains.
+2. Add both `icelandtaxioffers.is` and `www.icelandtaxioffers.is`.
+3. Follow Vercel's DNS instructions for the root domain and `www` subdomain.
+4. Keep `icelandtaxioffers.is` as the canonical domain. The site redirects `www.icelandtaxioffers.is` to `icelandtaxioffers.is`.
+5. Set `NEXT_PUBLIC_SITE_URL=https://icelandtaxioffers.is` in Vercel after the domain is connected.
+6. Redeploy the site.
+7. Submit `https://icelandtaxioffers.is/sitemap.xml` in Google Search Console.
 
 ## Google Search Console
 
