@@ -23,7 +23,7 @@ export const redisNotConfiguredMessage =
 
 let localQueue = Promise.resolve();
 
-function hasUpstashConfig() {
+export function hasUpstashConfig() {
   return Boolean(
     process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
   );
@@ -45,7 +45,7 @@ function ensureStorageConfigured() {
   throw new Error("REDIS_NOT_CONFIGURED");
 }
 
-async function redisCommand<T>(command: Array<string | number>) {
+export async function redisCommand<T>(command: Array<string | number>) {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 

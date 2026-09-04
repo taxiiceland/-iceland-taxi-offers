@@ -12,7 +12,6 @@ export const links = {
   home: homePath("#home"),
   airport: homePath("#airport-transfer"),
   tours: homePath("#private-tours"),
-  offers: homePath("#offers"),
   book: homePath("#book-now"),
   privacy: pagePath("privacy-policy"),
   terms: pagePath("terms-and-conditions"),

@@ -11,7 +11,7 @@ export default function TourCards() {
         <SectionHeading
           eyebrow="Iceland private tours"
           title="Private Taxi Tours Across Iceland"
-          copy="Choose a Golden Circle taxi, South Coast private tour, Blue Lagoon taxi, or custom trip. Select a time and pay after your ride."
+          copy="Request a pre-booked Golden Circle taxi, South Coast private tour, Blue Lagoon transfer, or custom long-distance Iceland trip."
         />
 
         <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -52,7 +52,7 @@ export default function TourCards() {
                       Custom Quote
                     </div>
                     <div className="rounded-lg bg-slate-50 px-3 py-2 text-center text-sm font-semibold text-slate-600">
-                      Price confirmed before booking.
+                      Price confirmed before booking acceptance.
                     </div>
                   </div>
                 ) : (

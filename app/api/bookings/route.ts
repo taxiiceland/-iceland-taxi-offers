@@ -3,6 +3,7 @@ import { isSlotAvailable } from "@/lib/availability";
 import {
   createBookingNotification,
   findSelectedPrice,
+  isPublicBookableRouteId,
   toReservation,
   type BookingRequest
 } from "@/lib/booking";
@@ -52,7 +53,6 @@ function sanitizeBooking(payload: unknown): BookingRequest | null {
   }
 
   const text = (field: string) => (booking[field] as string).trim();
-
   return {
     selectedRouteId: text("selectedRouteId"),
     selectedRoute: text("selectedRoute"),
@@ -74,12 +74,20 @@ function validateBooking(booking: BookingRequest) {
   const passengers = Number(booking.passengers);
   const suitcases = Number(booking.suitcases);
 
-  if (!booking.name || !booking.pickup || !booking.dropoff || !booking.date || !booking.time) {
+  if (!booking.selectedRouteId) {
+    return "Please choose a service or route.";
+  }
+
+  if (!isPublicBookableRouteId(booking.selectedRouteId)) {
+    return "Please choose an available transfer or tour option.";
+  }
+
+  if (!booking.pickup || !booking.dropoff || !booking.date || !booking.time) {
     return "Please complete the required booking details.";
   }
 
   if (!booking.phone && !booking.email) {
-    return "Please add a phone number or email so we can send your booking details.";
+    return "Please add a phone number or email so we can contact you.";
   }
 
   if (!Number.isInteger(passengers) || passengers < 1 || passengers > 4) {
@@ -118,14 +126,19 @@ export async function POST(request: Request) {
       if (!isSlotAvailable(booking.date, booking.time, route, reservations)) {
         return {
           status: "unavailable" as const,
-          error: "That time has just been reserved. Please choose another available time."
+          error: "That time has just been booked. Please choose another available time."
         };
       }
 
-      const notification = createBookingNotification(booking);
-      const reservation = toReservation(booking);
+      const bookingRecord: BookingRequest = {
+        ...booking,
+        name: booking.name.trim() || "Customer",
+        selectedRoute: route?.routeName || booking.selectedRoute
+      };
+      const notification = createBookingNotification(bookingRecord);
+      const reservation = toReservation(bookingRecord);
       const storedBooking = createStoredBooking(
-        booking,
+        bookingRecord,
         reservation,
         notification
       );
@@ -161,7 +174,7 @@ export async function POST(request: Request) {
       });
 
       return {
-        status: "reserved" as const,
+        status: "pending" as const,
         notification,
         bookingId: storedBooking.id,
         storage,

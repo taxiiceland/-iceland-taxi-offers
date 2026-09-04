@@ -69,7 +69,7 @@ function formatCreatedDate(value: string) {
 }
 
 function bookingPrice(booking: StoredBooking) {
-  if (booking.notification?.summerPrice === "Price confirmed before booking") {
+  if (booking.notification?.summerPrice?.startsWith("Price confirmed before booking")) {
     return booking.notification.regularPrice || "Custom Quote";
   }
 

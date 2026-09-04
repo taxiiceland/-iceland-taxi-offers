@@ -9,7 +9,13 @@ const faqs = [
   },
   {
     question: "Can I book before arriving in Iceland?",
-    answer: "Yes. Choose route, date, available time, pickup and drop-off."
+    answer:
+      "Yes. Send a booking request with route, date, time, pickup, drop-off, and your phone number or email address."
+  },
+  {
+    question: "Is my booking guaranteed immediately?",
+    answer:
+      "No. Sending the form creates a booking request. The booking is confirmed only after manual acceptance."
   },
   {
     question: "How many passengers can book?",
@@ -25,7 +31,7 @@ const faqs = [
   },
   {
     question: "Can I call directly?",
-    answer: `Yes. Call ${contact.phone}.`
+    answer: `Yes. Call ${contact.phone} for questions about airport transfers, longer private transfers, or tours.`
   }
 ];
 
@@ -36,7 +42,7 @@ export default function FAQ() {
         <SectionHeading
           eyebrow="FAQ"
           title="Iceland Taxi Booking Questions"
-          copy="Short answers for booking an Iceland taxi, Keflavík airport transfer, or private driver in Iceland."
+          copy="Short answers for requesting a Keflavík airport transfer, long-distance private taxi, or private driver in Iceland."
         />
 
         <div className="mt-8 grid gap-3 lg:grid-cols-2">

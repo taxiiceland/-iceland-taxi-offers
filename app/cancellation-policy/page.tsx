@@ -5,7 +5,7 @@ import { createPageMetadata } from "@/lib/seo";
 export const metadata: Metadata = createPageMetadata({
   title: "Cancellation Policy | Iceland Taxi Offers Airport Taxi",
   description:
-    "Cancellation information for Iceland Taxi Offers airport transfers, Reykjavík taxi bookings, private Iceland taxi rides, and private tours.",
+    "Cancellation information for Iceland Taxi Offers airport transfers, long-distance private transfer requests, Blue Lagoon transfers, and private tours.",
   path: "/cancellation-policy"
 });
 

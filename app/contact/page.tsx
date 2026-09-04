@@ -3,15 +3,15 @@ import BookingForm from "@/components/BookingForm";
 import ContactActionLink from "@/components/ContactActionLink";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import { telLink, whatsappLink } from "@/lib/contact-links";
+import { telLink } from "@/lib/contact-links";
 import { createPageMetadata } from "@/lib/seo";
 import { contact } from "@/lib/site-data";
-import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 
 export const metadata: Metadata = createPageMetadata({
-  title: "Contact Iceland Taxi Offers | Reykjavík Taxi & Airport Transfer",
+  title: "Contact Iceland Taxi Offers | Airport Transfers & Private Tours",
   description:
-    "Contact Iceland Taxi Offers for Reykjavík taxi service, Keflavík Airport transfers, Blue Lagoon taxi rides, and private taxi tours across Iceland.",
+    "Contact Iceland Taxi Offers for pre-booked Keflavík Airport transfers, Blue Lagoon transfers, long-distance private trips, and Iceland private tours.",
   path: "/contact"
 });
 
@@ -29,13 +29,6 @@ const contactCards = [
     href: `mailto:${contact.email}`,
     icon: Mail,
     action: null
-  },
-  {
-    label: "WhatsApp",
-    value: contact.whatsapp,
-    href: whatsappLink(),
-    icon: MessageCircle,
-    action: "whatsapp" as const
   }
 ];
 
@@ -51,12 +44,13 @@ export default function ContactPage() {
               Contact Iceland Taxi Offers
             </h1>
             <p className="mt-5 text-lg font-semibold leading-8 text-slate-600">
-              Contact a licensed Reykjavík taxi driver for Keflavík Airport
-              transfers, Blue Lagoon taxi rides, or private tours around Iceland.
+              Contact a licensed Icelandic taxi driver for pre-booked Keflavík
+              Airport transfers, Blue Lagoon transfers, long-distance private
+              trips, or private tours around Iceland.
             </p>
           </div>
 
-          <div className="mt-8 grid gap-5 md:grid-cols-3">
+          <div className="mt-8 grid gap-5 md:grid-cols-2">
             {contactCards.map(({ label, value, href, icon: Icon, action }) => {
               const content = (
                 <>
@@ -100,11 +94,11 @@ export default function ContactPage() {
                 </span>
                 <div>
                   <h2 className="text-2xl font-black">
-                    Iceland Taxi Booking Hours
+                    Booking Hours
                   </h2>
                   <p className="mt-2 text-base font-semibold leading-7 text-slate-600">
-                    Online booking is open 24/7. Airport transfers, private rides,
-                    and tours are available by reservation and driver availability.
+                    Booking requests can be sent online. Trips are scheduled by
+                    route, driver availability, and manual confirmation.
                   </p>
                 </div>
               </div>

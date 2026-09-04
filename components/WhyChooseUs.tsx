@@ -8,8 +8,8 @@ const reasons = [
     icon: UsersRound
   },
   {
-    title: "Flexible Schedule",
-    copy: "Travel when you want.",
+    title: "Planned Route",
+    copy: "Transfers and tours arranged in advance.",
     icon: CalendarClock
   },
   {
@@ -30,7 +30,7 @@ export default function WhyChooseUs() {
       <div className="section-shell">
         <SectionHeading
           eyebrow="Why choose us"
-          title="Why Choose This Reykjavík Taxi Driver"
+          title="Why Choose This Private Driver"
           align="center"
         />
 

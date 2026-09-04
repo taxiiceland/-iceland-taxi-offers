@@ -19,7 +19,7 @@ export default function RoutePrice({ price, compact = false }: RoutePriceProps) 
     return (
       <div className={`grid gap-2 ${compact ? "text-sm" : ""}`}>
         <div className="rounded-lg bg-midnight px-3 py-3 text-center text-sm font-black text-white">
-          Price confirmed before pickup
+          Price confirmed before booking acceptance
         </div>
       </div>
     );
@@ -48,7 +48,7 @@ export default function RoutePrice({ price, compact = false }: RoutePriceProps) 
       <div className="rounded-lg bg-midnight px-3 py-2 text-center text-sm font-black text-white">
         {hasPrice
           ? `You Save ${formatPrice(savings, price.currency)}`
-          : "Price confirmed before pickup"}
+          : "Price confirmed before booking acceptance"}
       </div>
     </div>
   );

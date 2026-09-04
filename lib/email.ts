@@ -152,8 +152,8 @@ function buildHtmlEmail(notification: BookingNotification) {
 
   return `
     <div style="font-family:Arial,sans-serif;color:#0f172a;">
-      <h1 style="margin:0 0 16px;font-size:24px;">New Iceland Taxi Offers Booking</h1>
-      <p style="margin:0 0 18px;color:#475569;">A customer has reserved a taxi. No online payment was collected.</p>
+      <h1 style="margin:0 0 16px;font-size:24px;">New Iceland Taxi Offers Booking Request</h1>
+      <p style="margin:0 0 18px;color:#475569;">A customer has sent a booking request. No online payment was collected.</p>
       <table style="border-collapse:collapse;width:100%;max-width:720px;border:1px solid #e5e7eb;">
         <tbody>${rows}</tbody>
       </table>
@@ -161,7 +161,7 @@ function buildHtmlEmail(notification: BookingNotification) {
 }
 
 function customerPriceLine(notification: BookingNotification) {
-  if (notification.summerPrice === "Price confirmed before booking") {
+  if (notification.summerPrice.startsWith("Price confirmed before booking")) {
     return notification.summerPrice;
   }
 
@@ -196,8 +196,11 @@ function buildCustomerTextEmail(notification: BookingNotification) {
 
 We have received your booking request and will review it shortly.
 
+The booking is not guaranteed until manually confirmed.
+
 Please note:
 No online payment is required. Payment is made after the ride by card terminal or cash.
+Custom-trip prices are confirmed before the booking is accepted.
 
 Booking details:
 ${details}
@@ -225,9 +228,10 @@ function buildCustomerHtmlEmail(notification: BookingNotification) {
       <h1 style="margin:0 0 16px;font-size:24px;">Your booking has been received</h1>
       <p style="margin:0 0 14px;">Thank you for choosing Iceland Taxi Offers.</p>
       <p style="margin:0 0 18px;">We have received your booking request and will review it shortly.</p>
+      <p style="margin:0 0 18px;">The booking is not guaranteed until manually confirmed.</p>
       <div style="margin:0 0 20px;padding:14px 16px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:12px;">
         <strong>Please note:</strong><br />
-        No online payment is required. Payment is made after the ride by card terminal or cash.
+        No online payment is required. Payment is made after the ride by card terminal or cash. Custom-trip prices are confirmed before the booking is accepted.
       </div>
       <table style="border-collapse:collapse;width:100%;max-width:720px;border:1px solid #e5e7eb;">
         <tbody>${rows}</tbody>
@@ -283,7 +287,7 @@ export async function sendCustomerConfirmationEmail(
   return sendResendEmail("customer", {
     from,
     to: notification.email,
-    subject: "Your booking has been received – Iceland Taxi Offers 🚖",
+    subject: "Your booking request has been received – Iceland Taxi Offers",
     text: buildCustomerTextEmail(notification),
     html: buildCustomerHtmlEmail(notification),
     reply_to: replyTo

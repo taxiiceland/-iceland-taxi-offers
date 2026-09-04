@@ -35,6 +35,7 @@ const routeBlockMinutes: Record<string, number> = {
   [prices.blueLagoonToReykjavik.id]: twoHourTransferBlock,
   [prices.blueLagoonToAirport.id]: twoHourTransferBlock,
   [prices.customAddressTransfer.id]: twoHourTransferBlock,
+  [prices.reykjavikToSelfoss.id]: twoHourTransferBlock,
   [prices.goldenCircle.id]: 6 * 60,
   [prices.southCoast.id]: 12 * 60,
   [prices.silverCircle.id]: 6 * 60,
@@ -42,7 +43,6 @@ const routeBlockMinutes: Record<string, number> = {
   [prices.blueLagoon.id]: 4 * 60,
   [prices.reykjanesLavaTour.id]: 5 * 60,
   [prices.reykjavikSightseeing.id]: 2 * 60,
-  [prices.cityCenter.id]: 60,
   [prices.hvammsvikOneWay.id]: twoHourTransferBlock,
   [prices.hvammsvikReturn.id]: 4 * 60,
   [prices.customTrip.id]: 4 * 60

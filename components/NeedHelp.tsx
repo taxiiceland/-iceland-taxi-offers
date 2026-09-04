@@ -1,6 +1,6 @@
-import { telLink, whatsappLink } from "@/lib/contact-links";
+import { telLink } from "@/lib/contact-links";
 import { contact } from "@/lib/site-data";
-import { Mail, MessageCircle, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import ContactActionLink from "./ContactActionLink";
 
 export default function NeedHelp() {
@@ -15,7 +15,7 @@ export default function NeedHelp() {
             Need Help?
           </p>
           <h2 className="mt-2 text-4xl font-black">
-            Call Iceland Taxi Offers 24/7
+            Contact Iceland Taxi Offers
           </h2>
           <ContactActionLink
             action="call"
@@ -25,15 +25,6 @@ export default function NeedHelp() {
           >
             {contact.phone}
           </ContactActionLink>
-          <ContactActionLink
-            action="whatsapp"
-            placement="need_help"
-            href={whatsappLink()}
-            className="mx-auto mt-4 flex w-fit items-center gap-2 rounded-full border border-white/[0.16] bg-white/[0.10] px-5 py-3 text-sm font-black uppercase tracking-[0.06em] text-white"
-          >
-            <MessageCircle className="h-5 w-5 text-gold" aria-hidden="true" />
-            WhatsApp
-          </ContactActionLink>
           <a
             href={`mailto:${contact.email}`}
             className="mx-auto mt-4 flex w-fit items-center gap-2 text-base font-bold text-glacier"
@@ -42,8 +33,9 @@ export default function NeedHelp() {
             {contact.email}
           </a>
           <p className="mx-auto mt-5 max-w-lg text-base font-semibold leading-7 text-white/[0.72]">
-            Questions about Keflavík Airport taxi transfers, Reykjavík rides,
-            or a custom route? Call us anytime.
+            Questions about Keflavík Airport transfers, long-distance private
+            transfers, or a custom route? Contact us before sending your booking
+            request.
           </p>
         </div>
       </div>

@@ -1,9 +1,9 @@
 "use client";
 
-import { telLink, whatsappLink } from "@/lib/contact-links";
+import { telLink } from "@/lib/contact-links";
 import { contact } from "@/lib/site-data";
 import { links as siteLinks } from "@/lib/links";
-import { Menu, MessageCircle, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import ContactActionLink from "./ContactActionLink";
 
@@ -11,7 +11,6 @@ const links = [
   { label: "Home", href: siteLinks.home },
   { label: "Airport Transfer", href: siteLinks.airport },
   { label: "Private Tours", href: siteLinks.tours },
-  { label: "Offers", href: siteLinks.offers },
   { label: "Book Now", href: siteLinks.book },
   { label: "Contact", href: siteLinks.contact }
 ];
@@ -55,16 +54,7 @@ export default function Header() {
             href={telLink()}
             className="rounded-full border border-white/[0.16] px-4 py-2.5 text-sm font-bold text-white/[0.86] transition hover:bg-white/[0.10]"
           >
-            Call 24/7
-          </ContactActionLink>
-          <ContactActionLink
-            action="whatsapp"
-            placement="header"
-            href={whatsappLink()}
-            className="inline-flex items-center gap-2 rounded-full border border-white/[0.16] px-4 py-2.5 text-sm font-bold text-white/[0.86] transition hover:bg-white/[0.10]"
-          >
-            <MessageCircle className="h-4 w-4 text-gold" aria-hidden="true" />
-            WhatsApp
+            Call
           </ContactActionLink>
           <a
             href={siteLinks.book}
@@ -104,15 +94,7 @@ export default function Header() {
               href={telLink()}
               className="rounded-lg bg-gold px-4 py-3 text-sm font-black text-midnight"
             >
-              Call 24/7 {contact.phone}
-            </ContactActionLink>
-            <ContactActionLink
-              action="whatsapp"
-              placement="mobile_menu"
-              href={whatsappLink()}
-              className="rounded-lg border border-white/[0.15] px-4 py-3 text-sm font-black text-white"
-            >
-              WhatsApp {contact.whatsapp}
+              Call {contact.phone}
             </ContactActionLink>
           </div>
         </div>

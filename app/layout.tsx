@@ -52,7 +52,7 @@ const structuredData = {
         "Iceland Taxi",
         "Keflavík Airport Taxi",
         "Airport Transfer Iceland",
-        "Reykjavík Taxi",
+        "Reykjavík to Keflavík Airport Taxi",
         "Blue Lagoon Taxi",
         "Golden Circle Taxi",
         "Private Taxi Iceland"
@@ -62,8 +62,9 @@ const structuredData = {
       areaServed: contact.serviceArea,
       offers: [
         { "@type": "Offer", name: "Keflavík Airport taxi transfers" },
-        { "@type": "Offer", name: "Reykjavík taxi rides" },
+        { "@type": "Offer", name: "Reykjavík to Keflavík Airport transfers" },
         { "@type": "Offer", name: "Blue Lagoon taxi transfers" },
+        { "@type": "Offer", name: "Long-distance private transfers" },
         { "@type": "Offer", name: "Golden Circle private taxi tours" },
         { "@type": "Offer", name: "South Coast private tours" }
       ]
@@ -99,6 +100,8 @@ export const metadata: Metadata = {
     "Taxi from Keflavík to Reykjavík",
     "Taxi from Reykjavík to Keflavík",
     "Blue Lagoon taxi",
+    "Selfoss private transfer",
+    "long distance taxi Iceland",
     "private driver Iceland",
     "Golden Circle private taxi",
     "South Coast private tour",

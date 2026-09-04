@@ -1,13 +1,12 @@
 "use client";
 
 import {
-  trackCallClicked,
-  trackWhatsappClicked
+  trackCallClicked
 } from "@/lib/analytics";
 import type { AnchorHTMLAttributes, ReactNode } from "react";
 
 type ContactActionLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
-  action: "call" | "whatsapp";
+  action: "call";
   placement: string;
   children: ReactNode;
 };
@@ -23,11 +22,7 @@ export default function ContactActionLink({
     <a
       {...props}
       onClick={(event) => {
-        if (action === "call") {
-          trackCallClicked(placement);
-        } else {
-          trackWhatsappClicked(placement);
-        }
+        trackCallClicked(placement);
 
         onClick?.(event);
       }}

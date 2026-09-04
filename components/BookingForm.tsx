@@ -10,16 +10,22 @@ import {
   type BookingNotification,
   type BookingRequest
 } from "@/lib/booking";
-import { contact } from "@/lib/site-data";
-import { CheckCircle2, Clock, Phone, Send } from "lucide-react";
+import {
+  airportRoutes,
+  bookingRouteOptions,
+  contact,
+  tourCards
+} from "@/lib/site-data";
+import { CheckCircle2, Phone, Send } from "lucide-react";
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import ContactActionLink from "./ContactActionLink";
 import SectionHeading from "./SectionHeading";
 
-type BookingFormState = BookingRequest;
 type BookingFormProps = {
   variant?: "full" | "quick";
 };
+
+type BookingFormState = BookingRequest;
 
 type RouteSelectedEvent = CustomEvent<{
   id: string;
@@ -53,6 +59,17 @@ const timeGroups = [
   { label: "Evening", start: 18 * 60, end: 24 * 60 }
 ];
 
+const routeGroups = [
+  {
+    label: "Airport and private transfers",
+    routes: airportRoutes
+  },
+  {
+    label: "Private tours",
+    routes: tourCards.map((tour) => tour.price)
+  }
+];
+
 function slotToMinutes(slot: string) {
   const [hours, minutes] = slot.split(":").map(Number);
   return hours * 60 + minutes;
@@ -70,6 +87,10 @@ function groupAvailableSlots(slots: string[]) {
     .filter((group) => group.slots.length > 0);
 }
 
+function findRoute(routeId: string) {
+  return bookingRouteOptions.find((route) => route.id === routeId) || null;
+}
+
 export default function BookingForm({ variant = "full" }: BookingFormProps) {
   const isQuick = variant === "quick";
   const [form, setForm] = useState<BookingFormState>(initialForm);
@@ -81,6 +102,8 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const quickFormStartedTracked = useRef(false);
+
+  const groupedAvailableSlots = groupAvailableSlots(availableSlots);
 
   useEffect(() => {
     function handleRouteSelected(event: Event) {
@@ -107,33 +130,6 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
     };
   }, []);
 
-  function updateField(
-    event:
-      | ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-      | FormEvent<HTMLInputElement>
-  ) {
-    const { name, value } = event.currentTarget;
-    setForm((current) => ({
-      ...current,
-      [name]: value,
-      ...(name === "date" ? { time: "" } : {})
-    }));
-  }
-
-  function handleQuickFormStarted() {
-    if (!isQuick || quickFormStartedTracked.current) {
-      return;
-    }
-
-    quickFormStartedTracked.current = true;
-    trackBookingFormStarted();
-  }
-
-  const selectedRoute = form.selectedRouteId
-    ? { id: form.selectedRouteId }
-    : null;
-  const groupedAvailableSlots = groupAvailableSlots(availableSlots);
-
   useEffect(() => {
     let cancelled = false;
 
@@ -147,7 +143,12 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
 
       try {
         if (isStaticExport) {
-          setAvailableSlots(getAvailableSlots(form.date, selectedRoute));
+          setAvailableSlots(
+            getAvailableSlots(
+              form.date,
+              form.selectedRouteId ? { id: form.selectedRouteId } : null
+            )
+          );
           return;
         }
 
@@ -193,57 +194,100 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
     };
   }, [form.date, form.selectedRouteId]);
 
+  function updateField(
+    event:
+      | ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+      | FormEvent<HTMLInputElement>
+  ) {
+    const { name, value } = event.currentTarget;
+
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === "date" ? { time: "" } : {})
+    }));
+  }
+
+  function updateRoute(event: ChangeEvent<HTMLSelectElement>) {
+    const route = findRoute(event.currentTarget.value);
+
+    setSubmitted(false);
+    setConfirmation(null);
+    setError("");
+    setForm((current) => ({
+      ...current,
+      selectedRouteId: route?.id || "",
+      selectedRoute: route?.routeName || "",
+      pickup: route ? route.pickup : current.pickup,
+      dropoff: route ? route.dropoff : current.dropoff,
+      time: ""
+    }));
+  }
+
+  function handleQuickFormStarted() {
+    if (!isQuick || quickFormStartedTracked.current) {
+      return;
+    }
+
+    quickFormStartedTracked.current = true;
+    trackBookingFormStarted();
+  }
+
+  function validateBeforeSubmit(bookingPayload: BookingFormState) {
+    const passengers = Number(bookingPayload.passengers);
+    const suitcases = Number(bookingPayload.suitcases);
+
+    if (!bookingPayload.selectedRouteId) {
+      return "Please choose a service or route.";
+    }
+
+    if (!bookingPayload.pickup.trim()) {
+      return "Please add your pickup location.";
+    }
+
+    if (!bookingPayload.dropoff.trim()) {
+      return "Please add your destination.";
+    }
+
+    if (!bookingPayload.date) {
+      return "Please choose a date.";
+    }
+
+    if (!bookingPayload.time) {
+      return "Please select an available time.";
+    }
+
+    if (!Number.isInteger(passengers) || passengers < 1 || passengers > 4) {
+      return "Please choose 1 to 4 passengers.";
+    }
+
+    if (!Number.isInteger(suitcases) || suitcases < 0 || suitcases > 5) {
+      return "Please choose 0 to 5 standard suitcases.";
+    }
+
+    if (!bookingPayload.phone.trim() && !bookingPayload.email.trim()) {
+      return "Please add a phone number or email so we can contact you.";
+    }
+
+    return "";
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
 
     const bookingPayload: BookingFormState = {
       ...form,
-      name: isQuick ? form.name.trim() || "Taxi customer" : form.name,
+      name: form.name.trim(),
+      selectedRoute:
+        findRoute(form.selectedRouteId)?.routeName || form.selectedRoute,
       passengers: form.passengers || "1",
       suitcases: form.suitcases || "0"
     };
+    const validationError = validateBeforeSubmit(bookingPayload);
 
-    if (!bookingPayload.pickup.trim()) {
-      setError("Please add your pickup location.");
-      return;
-    }
-
-    if (!bookingPayload.dropoff.trim()) {
-      setError("Please add your destination.");
-      return;
-    }
-
-    if (!bookingPayload.date) {
-      setError("Please choose a date.");
-      return;
-    }
-
-    if (!bookingPayload.time) {
-      setError("Please select an available time.");
-      return;
-    }
-
-    if (isQuick && !bookingPayload.phone.trim()) {
-      setError("Please add your phone number.");
-      return;
-    }
-
-    if (!bookingPayload.phone.trim() && !bookingPayload.email.trim()) {
-      setError("Please add a phone number or email so we can send your booking details.");
-      return;
-    }
-
-    const passengers = Number(bookingPayload.passengers);
-    const suitcases = Number(bookingPayload.suitcases);
-
-    if (passengers < 1 || passengers > 4) {
-      setError("Please choose 1 to 4 passengers.");
-      return;
-    }
-
-    if (suitcases < 0 || suitcases > 5) {
-      setError("Please choose 0 to 5 standard suitcases.");
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -270,7 +314,7 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
       if (!response.ok || !result.notification) {
         setError(
           result.error ||
-            "We could not complete the booking. Please call us for help."
+            "We could not complete the booking request. Please call us for help."
         );
 
         if (response.status === 409) {
@@ -289,14 +333,16 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
       setForm(initialForm);
       setAvailableSlots([]);
     } catch {
-      setError("We could not complete the booking. Please call us for help.");
+      setError("We could not complete the booking request. Please call us for help.");
     }
   }
 
   return (
     <section
       id="book-now"
-      className={isQuick ? "bg-ice pb-28 pt-2 sm:pb-20 sm:pt-5" : "bg-ice py-16 sm:py-20"}
+      className={
+        isQuick ? "bg-ice pb-24 pt-3 sm:pb-16 sm:pt-6" : "bg-ice py-16 sm:py-20"
+      }
     >
       <div className="section-shell">
         <div
@@ -309,16 +355,17 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
           {!isQuick ? (
             <div className="lg:sticky lg:top-28">
               <SectionHeading
-                eyebrow="Book now"
-                title="Reserve Your Iceland Taxi"
-                copy="Choose your airport transfer, Reykjavík taxi ride, private tour, or custom destination and select an available time."
+                eyebrow="Booking request"
+                title="Request a Private Transfer"
+                copy="Choose a pre-booked airport transfer, long-distance private transfer, private tour, or custom Iceland route."
               />
 
               <div className="mt-6 rounded-2xl bg-midnight p-5 text-white shadow-soft">
                 <p className="text-2xl font-black">No online payment.</p>
-                <p className="mt-2 text-sm leading-6 text-glacier/[0.80]">
-                  No online payment is required. Payment is made after your ride
-                  using our card payment terminal or by cash.
+                <p className="mt-2 text-sm leading-6 text-glacier/80">
+                  Sending this form creates a booking request. The booking is
+                  not guaranteed until manually confirmed. Payment is made after
+                  the ride by card using our payment terminal or by cash.
                 </p>
                 <ContactActionLink
                   action="call"
@@ -347,24 +394,29 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
               >
                 <CheckCircle2 className="h-10 w-10 text-emerald-600" />
                 <h3 className="mt-4 text-2xl font-black">
-                  Your taxi has been reserved
+                  Booking request received
                 </h3>
                 <p className="mt-3 text-sm font-semibold leading-6">
-                  Your booking has been received.
+                  Your booking request has been received. It is not guaranteed
+                  until manually confirmed.
+                </p>
+                <p className="mt-2 text-sm leading-6">
+                  Confirmation will be sent using the phone number or email you
+                  provided.
                 </p>
                 <p className="mt-2 text-sm leading-6">
                   Payment is made after the ride by card using our payment
                   terminal or by cash.
                 </p>
                 <p className="mt-2 text-sm leading-6">
-                  If there is any urgent issue with your booking, we will contact
-                  you as soon as possible using the phone or email you provided.
+                  Custom-trip prices are confirmed before the booking is
+                  accepted.
                 </p>
                 {confirmation ? (
-                  <div className="mt-5 rounded-xl bg-white/[0.70] p-4 text-sm font-semibold leading-6 text-emerald-950">
-                    <p>Reserved: {confirmation.selectedRoute}</p>
+                  <div className="mt-5 rounded-xl bg-white/70 p-4 text-sm font-semibold leading-6 text-emerald-950">
+                    <p>Request: {confirmation.selectedRoute}</p>
                     <p>
-                      Time blocked: {confirmation.blockedTime}
+                      Requested time: {confirmation.date} {confirmation.time}
                     </p>
                   </div>
                 ) : null}
@@ -374,7 +426,7 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
                   href={`tel:${contact.phone.replaceAll(" ", "")}`}
                   className="mt-5 inline-flex min-h-12 items-center rounded-full bg-midnight px-5 text-sm font-black text-white"
                 >
-                  Need urgent help? Call {contact.phone}
+                  Call {contact.phone}
                 </ContactActionLink>
               </div>
             ) : (
@@ -382,33 +434,20 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
                 onSubmit={handleSubmit}
                 onFocusCapture={handleQuickFormStarted}
                 onPointerDownCapture={handleQuickFormStarted}
-                className={isQuick ? "grid gap-2.5" : "grid gap-4"}
+                className={isQuick ? "grid gap-3" : "grid gap-4"}
                 noValidate
               >
                 {isQuick ? (
-                  <div className="grid gap-0.5 border-b border-slate-100 pb-2">
+                  <div className="grid gap-1 border-b border-slate-100 pb-3">
                     <h2 className="text-xl font-black text-midnight sm:text-2xl">
-                      Book Your Taxi
+                      Request a Private Transfer
                     </h2>
+                    <p className="text-sm font-semibold leading-5 text-slate-600">
+                      Airport transfers, long-distance private trips, and tours
+                      by manual confirmation.
+                    </p>
                     <p className="mt-1 inline-flex w-fit rounded-full bg-midnight px-2.5 py-1 text-[0.68rem] font-black uppercase tracking-[0.04em] text-white sm:px-3 sm:py-1.5 sm:text-xs">
                       KEF ↔ Reykjavík • Fixed fare • 18,000 ISK
-                    </p>
-                    <p className="text-[0.68rem] font-semibold leading-4 text-slate-600 sm:text-sm sm:leading-5">
-                      Airport pickup available with your name displayed.
-                    </p>
-                    <p className="hidden text-sm font-semibold leading-6 text-slate-600 sm:block">
-                      Pickup, destination, date and phone number.
-                    </p>
-                  </div>
-                ) : null}
-
-                {form.selectedRoute ? (
-                  <div className="rounded-xl bg-gold/[0.14] p-3 sm:p-4">
-                    <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                      Selected offer
-                    </p>
-                    <p className="mt-1 text-lg font-black text-midnight">
-                      {form.selectedRoute}
                     </p>
                   </div>
                 ) : null}
@@ -419,304 +458,218 @@ export default function BookingForm({ variant = "full" }: BookingFormProps) {
                   </p>
                 ) : null}
 
-                <input
-                  type="hidden"
-                  name="selectedRouteId"
-                  value={form.selectedRouteId}
-                />
+                <label className="grid gap-2 text-sm font-bold text-midnight">
+                  Service or route
+                  <select
+                    className="field"
+                    name="selectedRouteId"
+                    value={form.selectedRouteId}
+                    onChange={updateRoute}
+                    required
+                  >
+                    <option value="">Choose transfer or tour</option>
+                    {routeGroups.map((group) => (
+                      <optgroup key={group.label} label={group.label}>
+                        {group.routes.map((route) => (
+                          <option key={route.id} value={route.id}>
+                            {route.routeName}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </label>
+
                 <input
                   type="hidden"
                   name="selectedRoute"
                   value={form.selectedRoute}
                 />
 
-                {isQuick ? (
-                  <>
-                    <div className="grid gap-2 sm:grid-cols-2 sm:gap-3">
-                      <label className="grid gap-1 text-sm font-black text-midnight sm:gap-2 sm:text-base">
-                        Pickup location
-                        <input
-                          className="field min-h-12 text-base sm:min-h-14"
-                          name="pickup"
-                          value={form.pickup}
-                          onChange={updateField}
-                          placeholder="Keflavík Airport, hotel, address..."
-                          required
-                        />
-                      </label>
-                      <label className="grid gap-1 text-sm font-black text-midnight sm:gap-2 sm:text-base">
-                        Destination
-                        <input
-                          className="field min-h-12 text-base sm:min-h-14"
-                          name="dropoff"
-                          value={form.dropoff}
-                          onChange={updateField}
-                          placeholder="Reykjavík, Blue Lagoon, hotel..."
-                          required
-                        />
-                      </label>
-                    </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-bold text-midnight">
+                    Pickup location
+                    <input
+                      className="field"
+                      name="pickup"
+                      value={form.pickup}
+                      onChange={updateField}
+                      placeholder="Keflavík Airport, hotel, or address"
+                      required
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-bold text-midnight">
+                    Destination
+                    <input
+                      className="field"
+                      name="dropoff"
+                      value={form.dropoff}
+                      onChange={updateField}
+                      placeholder="Reykjavík, Blue Lagoon, Selfoss..."
+                      required
+                    />
+                  </label>
+                </div>
 
-                    <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1.05fr] sm:gap-3">
-                      <label className="grid gap-1 text-sm font-black text-midnight sm:gap-2 sm:text-base">
-                        Date
-                        <input
-                          className="field min-h-12 text-base sm:min-h-14"
-                          name="date"
-                          value={form.date}
-                          onChange={updateField}
-                          onInput={updateField}
-                          type="date"
-                          required
-                        />
-                      </label>
-                      <label className="grid gap-1 text-sm font-black text-midnight sm:gap-2 sm:text-base">
-                        Time
-                        <select
-                          className="field min-h-12 text-base sm:min-h-14"
-                          name="time"
-                          value={form.time}
-                          onChange={updateField}
-                          disabled={!form.date || availabilityLoading}
-                          required
-                        >
-                          <option value="">
-                            {availabilityLoading
-                              ? "Loading..."
-                              : form.date
-                                ? "Select time"
-                                : "Choose date first"}
-                          </option>
-                          {groupedAvailableSlots.map((group) => (
-                            <optgroup key={group.label} label={group.label}>
-                              {group.slots.map((slot) => (
-                                <option key={slot} value={slot}>
-                                  {slot}
-                                </option>
-                              ))}
-                            </optgroup>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-bold text-midnight">
+                    Date
+                    <input
+                      className="field"
+                      name="date"
+                      value={form.date}
+                      onChange={updateField}
+                      onInput={updateField}
+                      type="date"
+                      required
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-bold text-midnight">
+                    Time
+                    <select
+                      className="field"
+                      name="time"
+                      value={form.time}
+                      onChange={updateField}
+                      disabled={!form.date || availabilityLoading}
+                      required
+                    >
+                      <option value="">
+                        {availabilityLoading
+                          ? "Loading..."
+                          : form.date
+                            ? "Select time"
+                            : "Choose date first"}
+                      </option>
+                      {groupedAvailableSlots.map((group) => (
+                        <optgroup key={group.label} label={group.label}>
+                          {group.slots.map((slot) => (
+                            <option key={slot} value={slot}>
+                              {slot}
+                            </option>
                           ))}
-                        </select>
-                      </label>
-                      <label className="grid gap-1 text-sm font-black text-midnight sm:gap-2 sm:text-base">
-                        Phone Number
-                        <input
-                          className="field min-h-12 text-base sm:min-h-14"
-                          name="phone"
-                          value={form.phone}
-                          onChange={updateField}
-                          type="tel"
-                          placeholder="+354 000 0000"
-                          autoComplete="tel"
-                          required
-                        />
-                      </label>
-                    </div>
+                        </optgroup>
+                      ))}
+                    </select>
+                  </label>
+                </div>
 
-                    {form.date &&
-                    !availabilityLoading &&
-                    groupedAvailableSlots.length === 0 ? (
-                      <p className="rounded-xl bg-amber-50 p-3 text-sm font-semibold leading-6 text-amber-950">
-                        No available times for this date.
-                      </p>
-                    ) : null}
-                  </>
-                ) : (
-                  <>
-                    <label className="grid gap-2 text-sm font-bold text-midnight">
-                      Name
-                      <input
-                        className="field"
-                        name="name"
-                        value={form.name}
-                        onChange={updateField}
-                        autoComplete="name"
-                        required
-                      />
-                    </label>
+                {form.date &&
+                !availabilityLoading &&
+                groupedAvailableSlots.length === 0 ? (
+                  <p className="rounded-xl bg-amber-50 p-3 text-sm font-semibold leading-6 text-amber-950">
+                    No available times for this date.
+                  </p>
+                ) : null}
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="grid gap-2 text-sm font-bold text-midnight">
-                        Phone
-                        <input
-                          className="field"
-                          name="phone"
-                          value={form.phone}
-                          onChange={updateField}
-                          type="tel"
-                          placeholder="+354 000 0000"
-                          autoComplete="tel"
-                        />
-                      </label>
-                      <label className="grid gap-2 text-sm font-bold text-midnight">
-                        Email
-                        <input
-                          className="field"
-                          name="email"
-                          value={form.email}
-                          onChange={updateField}
-                          type="email"
-                          placeholder="you@example.com"
-                          autoComplete="email"
-                        />
-                      </label>
-                    </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-bold text-midnight">
+                    Phone number
+                    <input
+                      className="field"
+                      name="phone"
+                      value={form.phone}
+                      onChange={updateField}
+                      type="tel"
+                      placeholder="+354 760 7201"
+                      autoComplete="tel"
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-bold text-midnight">
+                    Email
+                    <input
+                      className="field"
+                      name="email"
+                      value={form.email}
+                      onChange={updateField}
+                      type="email"
+                      placeholder="you@example.com"
+                      autoComplete="email"
+                    />
+                  </label>
+                </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="grid gap-2 text-sm font-bold text-midnight">
-                        Pickup
-                        <input
-                          className="field"
-                          name="pickup"
-                          value={form.pickup}
-                          onChange={updateField}
-                          placeholder="Keflavík Airport"
-                          required
-                        />
-                      </label>
-                      <label className="grid gap-2 text-sm font-bold text-midnight">
-                        Drop-off
-                        <input
-                          className="field"
-                          name="dropoff"
-                          value={form.dropoff}
-                          onChange={updateField}
-                          placeholder="Reykjavík"
-                          required
-                        />
-                      </label>
-                    </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-bold text-midnight">
+                    Passengers
+                    <select
+                      className="field"
+                      name="passengers"
+                      value={form.passengers}
+                      onChange={updateField}
+                    >
+                      <option value="1">1 passenger</option>
+                      <option value="2">2 passengers</option>
+                      <option value="3">3 passengers</option>
+                      <option value="4">4 passengers</option>
+                    </select>
+                  </label>
+                  <label className="grid gap-2 text-sm font-bold text-midnight">
+                    Standard suitcases
+                    <select
+                      className="field"
+                      name="suitcases"
+                      value={form.suitcases}
+                      onChange={updateField}
+                    >
+                      <option value="0">0 suitcases</option>
+                      <option value="1">1 suitcase</option>
+                      <option value="2">2 suitcases</option>
+                      <option value="3">3 suitcases</option>
+                      <option value="4">4 suitcases</option>
+                      <option value="5">5 suitcases</option>
+                    </select>
+                  </label>
+                </div>
 
-                    <label className="grid gap-2 text-sm font-bold text-midnight">
-                      Date
-                      <input
-                        className="field"
-                        name="date"
-                        value={form.date}
-                        onChange={updateField}
-                        onInput={updateField}
-                        type="date"
-                        required
-                      />
-                    </label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-bold text-midnight">
+                    Name for pickup sign, optional
+                    <input
+                      className="field"
+                      name="name"
+                      value={form.name}
+                      onChange={updateField}
+                      autoComplete="name"
+                      placeholder="Name displayed for airport pickup"
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-bold text-midnight">
+                    Special or oversized luggage
+                    <input
+                      className="field"
+                      name="specialLuggage"
+                      value={form.specialLuggage}
+                      onChange={updateField}
+                      placeholder="Skis, stroller, wheelchair..."
+                    />
+                  </label>
+                </div>
 
-                    <div className="grid gap-3 rounded-2xl bg-ice p-4">
-                      <div className="flex items-center gap-2 text-sm font-black text-midnight">
-                        <Clock className="h-4 w-4 text-gold" aria-hidden="true" />
-                        Available times
-                      </div>
-                      {availabilityLoading ? (
-                        <p className="text-sm font-semibold text-slate-600">
-                          Loading available times...
-                        </p>
-                      ) : form.date ? (
-                        groupedAvailableSlots.length > 0 ? (
-                          <div className="max-h-[28rem] space-y-4 overflow-y-auto pr-1">
-                            {groupedAvailableSlots.map((group) => (
-                              <div key={group.label} className="grid gap-2">
-                                <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">
-                                  {group.label}
-                                </p>
-                                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                                  {group.slots.map((slot) => (
-                                    <button
-                                      key={slot}
-                                      type="button"
-                                      onClick={() =>
-                                        setForm((current) => ({
-                                          ...current,
-                                          time: slot
-                                        }))
-                                      }
-                                      className={`min-h-11 rounded-full px-3 text-sm font-black transition ${
-                                        form.time === slot
-                                          ? "bg-midnight text-white shadow-glow"
-                                          : "bg-white text-midnight hover:bg-gold/[0.18]"
-                                      }`}
-                                    >
-                                      {slot}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm font-semibold text-slate-600">
-                            No available times for this date.
-                          </p>
-                        )
-                      ) : (
-                        <p className="text-sm font-semibold text-slate-600">
-                          Choose a date to see available times.
-                        </p>
-                      )}
-                      <input type="hidden" name="time" value={form.time} />
-                    </div>
+                <label className="grid gap-2 text-sm font-bold text-midnight">
+                  Additional notes
+                  <textarea
+                    className="field min-h-24 resize-y"
+                    name="notes"
+                    value={form.notes}
+                    onChange={updateField}
+                    placeholder="Custom route, extra stop, child seat, or timing notes."
+                  />
+                </label>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="grid gap-2 text-sm font-bold text-midnight">
-                        Passengers
-                        <select
-                          className="field"
-                          name="passengers"
-                          value={form.passengers}
-                          onChange={updateField}
-                        >
-                          <option value="1">1 passenger</option>
-                          <option value="2">2 passengers</option>
-                          <option value="3">3 passengers</option>
-                          <option value="4">4 passengers</option>
-                        </select>
-                      </label>
-                      <label className="grid gap-2 text-sm font-bold text-midnight">
-                        Standard suitcases
-                        <select
-                          className="field"
-                          name="suitcases"
-                          value={form.suitcases}
-                          onChange={updateField}
-                        >
-                          <option value="0">0 suitcases</option>
-                          <option value="1">1 suitcase</option>
-                          <option value="2">2 suitcases</option>
-                          <option value="3">3 suitcases</option>
-                          <option value="4">4 suitcases</option>
-                          <option value="5">5 suitcases</option>
-                        </select>
-                      </label>
-                    </div>
-
-                    <label className="grid gap-2 text-sm font-bold text-midnight">
-                      Special luggage
-                      <input
-                        className="field"
-                        name="specialLuggage"
-                        value={form.specialLuggage}
-                        onChange={updateField}
-                        placeholder="Skis, golf clubs, baby stroller, wheelchair, oversized luggage..."
-                      />
-                    </label>
-
-                    <label className="grid gap-2 text-sm font-bold text-midnight">
-                      Notes
-                      <textarea
-                        className="field min-h-28 resize-y"
-                        name="notes"
-                        value={form.notes}
-                        onChange={updateField}
-                        placeholder="Custom route, extra stop, child seat, or timing notes."
-                      />
-                    </label>
-                  </>
-                )}
+                <p className="rounded-xl bg-slate-50 p-3 text-sm font-semibold leading-6 text-slate-600">
+                  Sending this form is a booking request. The booking is not
+                  guaranteed until manually confirmed. No online payment is
+                  required. Payment is made after your ride using our card
+                  payment terminal or by cash.
+                </p>
 
                 <button
                   type="submit"
                   className={`${isQuick ? "min-h-12" : "min-h-14"} focus-ring inline-flex items-center justify-center gap-2 rounded-full bg-midnight px-7 text-sm font-black uppercase tracking-[0.08em] text-white shadow-glow transition hover:bg-navy`}
                 >
                   <Send className="h-4 w-4 text-gold" aria-hidden="true" />
-                  Confirm Booking
+                  Send Booking Request
                 </button>
               </form>
             )}

@@ -92,14 +92,26 @@ export const prices = {
   },
   customAddressTransfer: {
     id: "customAddressTransfer",
-    routeName: "Hotel or Private Address Transfer",
-    pickup: "Hotel or private address",
+    routeName: "Custom Airport or Address Transfer",
+    pickup: "Hotel, airport, or private address",
     dropoff: "Custom destination",
     normalPrice: null,
     currency: "ISK",
     discountPercent: airportDiscount,
     duration: "Route dependent",
-    note: "Price confirmed before pickup",
+    note: "Price confirmed before booking acceptance",
+    category: "custom"
+  },
+  reykjavikToSelfoss: {
+    id: "reykjavikToSelfoss",
+    routeName: "Reykjavík → Selfoss Private Transfer",
+    pickup: "Reykjavík",
+    dropoff: "Selfoss / South Iceland",
+    normalPrice: null,
+    currency: "ISK",
+    discountPercent: airportDiscount,
+    duration: "60–75 min",
+    note: "Long-distance transfer quote",
     category: "custom"
   },
   goldenCircle: {
@@ -186,18 +198,6 @@ export const prices = {
     note: "Private city highlights",
     category: "tour"
   },
-  cityCenter: {
-    id: "cityCenter",
-    routeName: "City Center",
-    pickup: "Reykjavík",
-    dropoff: "City Center",
-    normalPrice: 4050,
-    currency: "ISK",
-    discountPercent: tourDiscount,
-    duration: "Short transfer",
-    note: "City Center",
-    category: "tour"
-  },
   hvammsvikOneWay: {
     id: "hvammsvikOneWay",
     routeName: "Hvammsvík One Way",
@@ -258,7 +258,7 @@ export function getSavings(price: PriceConfig) {
 
 export function formatPrice(amount: number | null, currency: PriceCurrency) {
   if (amount === null) {
-    return "Price confirmed before pickup";
+    return "Price confirmed before booking acceptance";
   }
 
   const formatted = new Intl.NumberFormat("en-US").format(amount);

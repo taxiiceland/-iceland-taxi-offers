@@ -6,7 +6,7 @@ import {
   prices,
   type PriceConfig
 } from "./pricing";
-import { contact } from "./site-data";
+import { contact, publicBookableRouteIds } from "./site-data";
 
 export type BookingRequest = {
   selectedRouteId: string;
@@ -50,6 +50,10 @@ export function findSelectedPrice(routeId: string): PriceConfig | null {
   return Object.values(prices).find((price) => price.id === routeId) ?? null;
 }
 
+export function isPublicBookableRouteId(routeId: string) {
+  return publicBookableRouteIds.has(routeId);
+}
+
 export function createBookingNotification(
   booking: BookingRequest
 ): BookingNotification {
@@ -69,14 +73,17 @@ export function createBookingNotification(
     blockedTime.endDate === blockedTime.date
       ? blockedTime.end
       : `${blockedTime.end} on ${blockedTime.endDate}`;
+  const customerName = booking.name.trim() || "Customer";
+  const selectedRoute =
+    selectedPrice?.routeName || booking.selectedRoute || "Custom long-distance trip";
 
   return {
     to: contact.email,
-    subject: `New booking: ${booking.selectedRoute || "Custom ride"} ${booking.date} ${booking.time}`,
-    customerName: booking.name,
+    subject: `New booking request: ${selectedRoute} ${booking.date} ${booking.time}`,
+    customerName,
     phone: booking.phone || "Not provided",
     email: booking.email || "Not provided",
-    selectedRoute: booking.selectedRoute || "Custom ride",
+    selectedRoute,
     pickup: booking.pickup,
     dropoff: booking.dropoff,
     date: booking.date,
@@ -94,7 +101,7 @@ export function createBookingNotification(
     summerPrice:
       hasFixedPrice && selectedPrice
         ? formatPrice(discountedPrice, currency)
-        : "Price confirmed before booking",
+        : "Price confirmed before booking acceptance",
     youSave:
       hasFixedPrice && selectedPrice ? formatPrice(savings, currency) : "Not applicable",
     blockedTime: `${blockedTime.date} ${blockedTime.start}–${blockedEnd} (${blockedTime.blockMinutes} minutes)`

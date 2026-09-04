@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAvailableSlots } from "@/lib/availability";
-import { findSelectedPrice } from "@/lib/booking";
+import { findSelectedPrice, isPublicBookableRouteId } from "@/lib/booking";
 import {
   bookingsToReservations,
   getStoredBookings,
@@ -13,6 +13,14 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const date = searchParams.get("date") || "";
   const routeId = searchParams.get("routeId") || "";
+
+  if (routeId && !isPublicBookableRouteId(routeId)) {
+    return NextResponse.json(
+      { error: "Please choose an available transfer or tour option." },
+      { status: 400 }
+    );
+  }
+
   const route = findSelectedPrice(routeId);
   try {
     const bookings = await getStoredBookings();

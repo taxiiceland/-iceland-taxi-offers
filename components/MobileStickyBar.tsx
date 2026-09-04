@@ -1,7 +1,8 @@
 "use client";
 
-import { telLink, whatsappLink } from "@/lib/contact-links";
-import { CalendarCheck, MessageCircle, Phone } from "lucide-react";
+import { telLink } from "@/lib/contact-links";
+import { contact } from "@/lib/site-data";
+import { CalendarCheck, Mail, Phone } from "lucide-react";
 import ContactActionLink from "./ContactActionLink";
 
 export default function MobileStickyBar() {
@@ -24,15 +25,13 @@ export default function MobileStickyBar() {
           <Phone className="h-4 w-4 text-gold" aria-hidden="true" />
           Call
         </ContactActionLink>
-        <ContactActionLink
-          action="whatsapp"
-          placement="mobile_sticky"
-          href={whatsappLink()}
+        <a
+          href={`mailto:${contact.email}`}
           className="inline-flex min-h-12 items-center justify-center gap-1.5 rounded-full border border-white/[0.22] bg-white/[0.14] px-3 text-xs font-black uppercase tracking-[0.04em] text-white"
         >
-          <MessageCircle className="h-4 w-4 text-gold" aria-hidden="true" />
-          WhatsApp
-        </ContactActionLink>
+          <Mail className="h-4 w-4 text-gold" aria-hidden="true" />
+          Email
+        </a>
       </div>
     </div>
   );

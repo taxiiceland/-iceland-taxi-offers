@@ -20,7 +20,7 @@ Add these in Vercel Project Settings > Environment Variables:
 
 ```bash
 NEXT_PUBLIC_SITE_URL=https://icelandtaxioffers.is
-NEXT_PUBLIC_GA_ID=
+NEXT_PUBLIC_GA_ID=G-5K197GWZKP
 
 ADMIN_USERNAME=choose_admin_username
 ADMIN_PASSWORD=choose_strong_admin_password
@@ -33,7 +33,7 @@ UPSTASH_REDIS_REST_URL=your_upstash_rest_url
 UPSTASH_REDIS_REST_TOKEN=your_upstash_rest_token
 ```
 
-`NEXT_PUBLIC_GA_ID` should stay empty until the real Google Analytics Measurement ID is created.
+`NEXT_PUBLIC_GA_ID` should stay set to the current GA4 Measurement ID unless the Google Analytics property changes.
 
 ## Booking Email Setup
 
@@ -44,7 +44,7 @@ UPSTASH_REDIS_REST_TOKEN=your_upstash_rest_token
 5. Add `BOOKING_EMAIL_FROM`, for example `bookings@icelandtaxioffers.is`.
 6. Keep `BOOKING_EMAIL_TO=icelandtaxioffers@gmail.com`.
 
-After this is configured, every reserved booking sends an email to `icelandtaxioffers@gmail.com`.
+After this is configured, every booking request sends an email to `icelandtaxioffers@gmail.com`.
 
 ## Booking Storage and Availability
 
@@ -54,7 +54,7 @@ Use Upstash Redis through the Vercel Marketplace or directly from Upstash.
 2. Copy the REST URL and REST token.
 3. Add them to Vercel as `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
 
-Saved bookings are used to block unavailable times after refresh. Manual unavailable times remain editable in `lib/availability.ts`.
+Saved booking requests are used to block unavailable times after refresh. Manual unavailable times remain editable in `lib/availability.ts`.
 
 ## Admin Dashboard
 
@@ -93,9 +93,11 @@ After deployment:
 
 ## Google Analytics
 
-After creating a Google Analytics property:
+The current GA4 Measurement ID is `G-5K197GWZKP`.
 
-1. Copy the Measurement ID, for example `G-XXXXXXXXXX`.
+If the Google Analytics property changes later:
+
+1. Copy the new Measurement ID, for example `G-XXXXXXXXXX`.
 2. Add it to Vercel as `NEXT_PUBLIC_GA_ID`.
 3. Redeploy.
 

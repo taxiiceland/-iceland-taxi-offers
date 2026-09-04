@@ -10,8 +10,8 @@ export default function AirportTransferCards() {
       <div className="section-shell">
         <SectionHeading
           eyebrow="Airport transfer Iceland"
-          title="Keflavík Airport Taxi & Transfers"
-          copy="Choose a fixed airport transfer route for Keflavík Airport, Reykjavík, or Blue Lagoon and the booking form fills it in for you."
+          title="Keflavík Airport Transfers"
+          copy="Choose a fixed airport route or request a custom long-distance private transfer. The booking form fills in the main route details for you."
         />
 
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
@@ -25,7 +25,9 @@ export default function AirportTransferCards() {
                   <Plane className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <span className="rounded-full bg-gold px-3 py-1 text-xs font-black text-midnight">
-                  {route.discountPercent}% ☀️ Summer Discount
+                  {route.normalPrice === null
+                    ? "Custom quote"
+                    : `${route.discountPercent}% ☀️ Summer Discount`}
                 </span>
               </div>
 
@@ -60,8 +62,8 @@ export default function AirportTransferCards() {
           <ShieldCheck className="mt-0.5 h-5 w-5 flex-none text-gold" />
           Prices are based on selected route and confirmed before pickup.
           Payment is made after the ride by card using our payment terminal or
-          by cash. Final fare may vary for custom addresses, waiting time, extra
-          stops, or changed routes.
+          by cash. Custom transfer prices, extra stops, waiting time, or changed
+          routes are confirmed before the booking is accepted.
         </p>
       </div>
     </section>

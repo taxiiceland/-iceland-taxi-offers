@@ -9,8 +9,8 @@ export default function Footer() {
           <div>
             <p className="text-lg font-black">{contact.businessName}</p>
             <p className="mt-2 text-sm font-semibold leading-6 text-glacier/[0.72]">
-              Licensed Icelandic Taxi Driver for airport transfers, private
-              taxi rides and Iceland private tours.
+              Licensed Icelandic Taxi Driver for pre-booked airport transfers,
+              long-distance private transfers and Iceland private tours.
             </p>
             <p className="mt-2 text-sm font-semibold leading-6 text-glacier/[0.72]">
               Service area: {contact.serviceArea}
@@ -30,11 +30,8 @@ export default function Footer() {
             <a href={links.tours} className="hover:text-white">
               Private Taxi Tours
             </a>
-            <a href={links.offers} className="hover:text-white">
-              Summer Offers
-            </a>
             <a href={links.book} className="hover:text-white">
-              Book Private Taxi Iceland
+              Request Booking
             </a>
             <a href={links.privacy} className="hover:text-white">
               Privacy Policy

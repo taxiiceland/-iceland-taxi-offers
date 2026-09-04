@@ -17,10 +17,10 @@ export function absoluteUrl(path = "/") {
 }
 
 export const defaultSeoTitle =
-  "Iceland Taxi | Keflavík Airport Transfers & Private Tours";
+  "Iceland Taxi Offers | Keflavík Airport Transfers & Private Tours";
 
 export const defaultSeoDescription =
-  "Book Iceland Taxi Offers for Keflavík Airport taxi transfers, Reykjavík rides, Blue Lagoon taxi trips, Golden Circle tours, and private taxi service in Iceland.";
+  "Request pre-booked Keflavík Airport transfers, Reykjavík to Keflavík taxi service, Blue Lagoon transfers, long-distance private trips, and Iceland private tours.";
 
 export const defaultSeoImage = {
   url: images.hero,

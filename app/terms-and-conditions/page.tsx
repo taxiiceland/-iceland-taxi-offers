@@ -5,7 +5,7 @@ import { createPageMetadata } from "@/lib/seo";
 export const metadata: Metadata = createPageMetadata({
   title: "Terms & Conditions | Iceland Taxi Offers Private Taxi",
   description:
-    "Terms for Iceland Taxi Offers private taxi rides, Keflavík Airport transfers, Reykjavík taxi service, Blue Lagoon trips, and Iceland private tours.",
+    "Terms for Iceland Taxi Offers pre-booked Keflavík Airport transfers, long-distance private trips, Blue Lagoon transfers, and Iceland private tours.",
   path: "/terms-and-conditions"
 });
 
@@ -14,11 +14,13 @@ export default function TermsAndConditionsPage() {
     <LegalPage
       eyebrow="Terms"
       title="Terms & Conditions"
-      intro="These terms apply to bookings made with Iceland Taxi Offers for airport transfers, private taxi rides, and private tours."
+      intro="These terms apply to booking requests made with Iceland Taxi Offers for airport transfers, long-distance private transfers, and private tours."
       sections={[
         {
           title: "Booking Terms",
           items: [
+            "Sending the booking form creates a booking request, not a guaranteed booking.",
+            "Bookings are accepted only after manual confirmation.",
             "Prices are per vehicle, not per passenger.",
             "Tour durations are approximate.",
             "Customers should arrive at the pickup location on time."

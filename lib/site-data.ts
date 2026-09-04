@@ -2,11 +2,10 @@ import { prices } from "./pricing";
 
 export const contact = {
   phone: "+354 760 7201",
-  whatsapp: "+354 760 7201",
   email: "icelandtaxioffers@gmail.com",
   businessName: "Iceland Taxi Offers",
   serviceArea:
-    "Keflavík Airport, Reykjavík, Blue Lagoon, and private tours across Iceland."
+    "Keflavík Airport, Reykjavík, Blue Lagoon, Selfoss, and private transfers or tours across Iceland."
 };
 
 export const images = {
@@ -37,6 +36,7 @@ export const airportRoutes = [
   prices.reykjavikToBlueLagoon,
   prices.blueLagoonToReykjavik,
   prices.blueLagoonToAirport,
+  prices.reykjavikToSelfoss,
   prices.customAddressTransfer
 ];
 
@@ -91,19 +91,12 @@ export const tourCards = [
   },
   {
     price: prices.reykjavikSightseeing,
-    title: "Reykjavík Sightseeing",
-    description: "Private Reykjavík taxi sightseeing around city landmarks and viewpoints.",
+    title: "Reykjavík Private Sightseeing",
+    description:
+      "Pre-booked two-hour private sightseeing route around Reykjavík landmarks and viewpoints.",
     image: images.reykjavik,
-    alt: "Reykjavík taxi sightseeing private tour around city highlights",
-    gallery: ["Hallgrímskirkja", "Harpa", "Sun Voyager", "City viewpoints"]
-  },
-  {
-    price: prices.cityCenter,
-    title: "City Center",
-    description: "Quick Reykjavík taxi transfer for city-center pickup and drop-off.",
-    image: images.reykjavik,
-    alt: "Reykjavík city center taxi transfer with private driver",
-    gallery: ["Downtown Reykjavík", "City Center", "Local pickup"]
+    alt: "Pre-booked Reykjavík private sightseeing tour around city highlights",
+    gallery: ["Hallgrímskirkja", "Harpa", "Sun Voyager", "Viewpoints"]
   },
   {
     price: prices.hvammsvikOneWay,
@@ -124,9 +117,28 @@ export const tourCards = [
   {
     price: prices.customTrip,
     title: "Custom Private Trip",
-    description: "Plan a custom private taxi trip in Iceland with pickup and destination.",
+    description:
+      "Plan a custom long-distance private transfer or tour in Iceland with pickup and destination.",
     image: images.customTrip,
-    alt: "Custom private taxi Iceland road trip with licensed driver",
+    alt: "Custom long-distance private transfer in Iceland with licensed driver",
     gallery: ["Private route", "Flexible stops", "Local advice"]
   }
 ];
+
+export const bookingRouteOptions = [
+  ...airportRoutes,
+  prices.goldenCircle,
+  prices.southCoast,
+  prices.silverCircle,
+  prices.snaefellsnes,
+  prices.blueLagoon,
+  prices.reykjanesLavaTour,
+  prices.reykjavikSightseeing,
+  prices.hvammsvikOneWay,
+  prices.hvammsvikReturn,
+  prices.customTrip
+];
+
+export const publicBookableRouteIds = new Set(
+  bookingRouteOptions.map((route) => route.id)
+);
