@@ -23,11 +23,13 @@ const faqs = [
   },
   {
     question: "How many suitcases fit?",
-    answer: "Up to 5 standard suitcases. Add special luggage notes if needed."
+    answer:
+      "Up to 5 standard suitcases. Please call before booking if you have unusual or oversized luggage."
   },
   {
     question: "Can I book a private Golden Circle trip?",
-    answer: "Yes. Select Golden Circle or write your custom plan."
+    answer:
+      "Yes. Send a booking request or contact us with your preferred date and pickup location."
   },
   {
     question: "Can I call directly?",

@@ -19,15 +19,12 @@ export default function PrivacyPolicyPage() {
         {
           title: "Information We Collect",
           items: [
-            "Name",
             "Email",
             "Phone Number",
-            "Selected service or route",
             "Pickup Address",
             "Destination",
             "Date and time",
-            "Passenger and luggage details",
-            "Additional notes, if provided"
+            "Selected transfer or tour details when chosen from the website"
           ]
         },
         {
