@@ -1,4 +1,5 @@
 import { prices, type PriceConfig } from "./pricing";
+import { isPastDateTimeInIceland } from "./iceland-time";
 
 export type Reservation = {
   routeId: string;
@@ -128,6 +129,10 @@ export function isSlotAvailable(
   unavailableTimes: ManualUnavailableTime[] = manualUnavailableTimes
 ) {
   if (!date || !startTime) {
+    return false;
+  }
+
+  if (isPastDateTimeInIceland(date, startTime)) {
     return false;
   }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAvailableSlots } from "@/lib/availability";
 import { findSelectedPrice, isPublicBookableRouteId } from "@/lib/booking";
+import { isPastDateInIceland, isValidDateValue } from "@/lib/iceland-time";
 import {
   bookingsToReservations,
   getStoredBookings,
@@ -13,6 +14,20 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const date = searchParams.get("date") || "";
   const routeId = searchParams.get("routeId") || "";
+
+  if (!isValidDateValue(date)) {
+    return NextResponse.json(
+      { error: "Please choose a valid pickup date." },
+      { status: 400 }
+    );
+  }
+
+  if (isPastDateInIceland(date)) {
+    return NextResponse.json(
+      { error: "Please choose today or a future pickup date." },
+      { status: 400 }
+    );
+  }
 
   if (routeId && !isPublicBookableRouteId(routeId)) {
     return NextResponse.json(

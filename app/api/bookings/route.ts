@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { isSlotAvailable } from "@/lib/availability";
 import {
   createBookingNotification,
-  findSelectedPrice,
   isPublicBookableRouteId,
+  resolveSelectedPrice,
   toReservation,
+  validatePickupDateTime,
   type BookingRequest
 } from "@/lib/booking";
 import {
@@ -74,16 +75,21 @@ function validateBooking(booking: BookingRequest) {
   const passengers = Number(booking.passengers);
   const suitcases = Number(booking.suitcases);
 
-  if (!booking.selectedRouteId) {
-    return "Please choose a service or route.";
-  }
-
-  if (!isPublicBookableRouteId(booking.selectedRouteId)) {
+  if (
+    booking.selectedRouteId &&
+    !isPublicBookableRouteId(booking.selectedRouteId)
+  ) {
     return "Please choose an available transfer or tour option.";
   }
 
   if (!booking.pickup || !booking.dropoff || !booking.date || !booking.time) {
     return "Please complete the required booking details.";
+  }
+
+  const dateTimeError = validatePickupDateTime(booking.date, booking.time);
+
+  if (dateTimeError) {
+    return dateTimeError;
   }
 
   if (!booking.phone && !booking.email) {
@@ -119,7 +125,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await withBookingLock(async () => {
-      const route = findSelectedPrice(booking.selectedRouteId);
+      const route = resolveSelectedPrice(booking);
       const existingBookings = await getStoredBookings();
       const reservations = bookingsToReservations(existingBookings);
 
@@ -133,7 +139,10 @@ export async function POST(request: Request) {
       const bookingRecord: BookingRequest = {
         ...booking,
         name: booking.name.trim() || "Customer",
-        selectedRoute: route?.routeName || booking.selectedRoute
+        selectedRouteId: route.id,
+        selectedRoute: route.routeName || booking.selectedRoute,
+        passengers: booking.passengers || "1",
+        suitcases: booking.suitcases || "0"
       };
       const notification = createBookingNotification(bookingRecord);
       const reservation = toReservation(bookingRecord);

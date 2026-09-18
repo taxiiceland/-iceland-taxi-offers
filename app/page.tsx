@@ -5,7 +5,6 @@ import FAQ from "@/components/FAQ";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import MobileStickyBar from "@/components/MobileStickyBar";
 import TourCards from "@/components/TourCards";
 import TrustBadges from "@/components/TrustBadges";
 import WhyChooseUs from "@/components/WhyChooseUs";
@@ -20,7 +19,7 @@ export const metadata: Metadata = createPageMetadata({
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-ice pb-20 text-midnight md:pb-0">
+    <main className="min-h-screen bg-ice text-midnight">
       <Header />
       <Hero />
       <BookingForm variant="quick" />
@@ -30,7 +29,6 @@ export default function Home() {
       <WhyChooseUs />
       <FAQ />
       <Footer />
-      <MobileStickyBar />
     </main>
   );
 }
