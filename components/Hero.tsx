@@ -21,7 +21,7 @@ export default function Hero() {
             </h1>
             <div className="mt-3 flex flex-wrap items-end gap-x-3 gap-y-1">
               <p className="text-4xl font-black leading-none text-sky-700 sm:text-5xl">
-                18,000 ISK
+                19,000 ISK
               </p>
               <p className="pb-1 text-sm font-black uppercase tracking-[0.08em] text-slate-800 sm:text-base">
                 Fixed Price
