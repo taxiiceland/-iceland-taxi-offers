@@ -1,9 +1,9 @@
 "use client";
 
-import { telLink } from "@/lib/contact-links";
+import { telLink, whatsappLink } from "@/lib/contact-links";
 import { contact } from "@/lib/site-data";
 import { links as siteLinks } from "@/lib/links";
-import { Menu, X } from "lucide-react";
+import { Menu, MessageCircle, X } from "lucide-react";
 import { useState } from "react";
 import ContactActionLink from "./ContactActionLink";
 
@@ -56,6 +56,17 @@ export default function Header() {
           >
             Call
           </ContactActionLink>
+          <ContactActionLink
+            action="whatsapp"
+            placement="header"
+            href={whatsappLink()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-emerald-300/40 px-4 py-2.5 text-sm font-bold text-emerald-100 transition hover:bg-emerald-400/10"
+          >
+            <MessageCircle className="h-4 w-4" aria-hidden="true" />
+            WhatsApp
+          </ContactActionLink>
           <a
             href={siteLinks.book}
             className="rounded-full bg-gold px-5 py-2.5 text-sm font-black uppercase tracking-[0.06em] text-midnight shadow-glow transition hover:bg-ember"
@@ -95,6 +106,16 @@ export default function Header() {
               className="rounded-lg bg-gold px-4 py-3 text-sm font-black text-midnight"
             >
               Call {contact.phone}
+            </ContactActionLink>
+            <ContactActionLink
+              action="whatsapp"
+              placement="mobile_menu"
+              href={whatsappLink()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg border border-emerald-300/30 bg-emerald-400/10 px-4 py-3 text-sm font-black text-emerald-100"
+            >
+              WhatsApp {contact.whatsapp}
             </ContactActionLink>
           </div>
         </div>

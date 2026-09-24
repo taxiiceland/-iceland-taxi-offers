@@ -1,5 +1,7 @@
 import { contact } from "@/lib/site-data";
 import { links } from "@/lib/links";
+import { whatsappLink } from "@/lib/contact-links";
+import ContactActionLink from "./ContactActionLink";
 
 export default function Footer() {
   return (
@@ -45,6 +47,16 @@ export default function Footer() {
             <a href={links.contact} className="hover:text-white">
               Contact
             </a>
+            <ContactActionLink
+              action="whatsapp"
+              placement="footer"
+              href={whatsappLink()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white"
+            >
+              WhatsApp
+            </ContactActionLink>
           </div>
         </div>
       </div>

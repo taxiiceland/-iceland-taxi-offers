@@ -2,6 +2,7 @@ import { prices } from "./pricing";
 
 export const contact = {
   phone: "+354 760 7201",
+  whatsapp: "+354 760 7201",
   email: "icelandtaxioffers@gmail.com",
   businessName: "Iceland Taxi Offers",
   serviceArea:

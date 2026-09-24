@@ -3,10 +3,10 @@ import BookingForm from "@/components/BookingForm";
 import ContactActionLink from "@/components/ContactActionLink";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import { telLink } from "@/lib/contact-links";
+import { telLink, whatsappLink } from "@/lib/contact-links";
 import { createPageMetadata } from "@/lib/seo";
 import { contact } from "@/lib/site-data";
-import { Clock, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
 export const metadata: Metadata = createPageMetadata({
   title: "Contact Iceland Taxi Offers | Airport Transfers & Private Tours",
@@ -22,6 +22,14 @@ const contactCards = [
     href: telLink(),
     icon: Phone,
     action: "call" as const
+  },
+  {
+    label: "WhatsApp",
+    value: contact.whatsapp,
+    href: whatsappLink(),
+    icon: MessageCircle,
+    action: "whatsapp" as const,
+    external: true
   },
   {
     label: "Email",
@@ -50,8 +58,8 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="mt-8 grid gap-5 md:grid-cols-2">
-            {contactCards.map(({ label, value, href, icon: Icon, action }) => {
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {contactCards.map(({ label, value, href, icon: Icon, action, external }) => {
               const content = (
                 <>
                   <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-midnight text-gold">
@@ -74,6 +82,8 @@ export default function ContactPage() {
                   action={action}
                   placement="contact_card"
                   href={href}
+                  target={external ? "_blank" : undefined}
+                  rel={external ? "noopener noreferrer" : undefined}
                   className={className}
                 >
                   {content}
